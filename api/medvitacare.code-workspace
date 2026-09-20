@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"name": "api",
+			"path": "api"
+		},
+		{
+			"name": "web",
+			"path": "web"
+		}
+	],
+	"settings": {
+		"a-file-icon-vscode.activeIconPacks": [
+			"nest",
+			"rails"
+		]
+	}
+}
