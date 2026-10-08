@@ -18,14 +18,14 @@ export class ClinicController {
     return this.clinicService.findAll();
   }
 
-  @Get(":id")
-  findById(@Param("id") id: string) {
-    return this.clinicService.findById(id);
-  }
-
   @Get("document/:document")
   findByDocument(@Param("document") document: string) {
     return this.clinicService.findByDocument(document);
+  }
+
+  @Get(":id")
+  findById(@Param("id") id: string) {
+    return this.clinicService.findById(id);
   }
 
   @Patch(":id")

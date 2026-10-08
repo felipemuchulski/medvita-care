@@ -26,9 +26,6 @@ export class ClinicService {
     });
 
     const emailNormalized = normalizedEmail(createClinicDto.email);
-    const emailExist = await this.clinicRepository.findOneBy({
-      email: emailNormalized,
-    });
 
     if (documentExist) {
       throw new ConflictException(
@@ -36,15 +33,10 @@ export class ClinicService {
       );
     }
 
-    if (emailExist) {
-      throw new ConflictException(
-        "Já existe uma clínica cadastrada com este email.",
-      );
-    }
-
     const clinic = this.clinicRepository.create({
       ...createClinicDto,
       document: documentNormalized,
+      email: emailNormalized,
     });
 
     return await this.clinicRepository.save(clinic);
@@ -98,18 +90,7 @@ export class ClinicService {
     const clinic = await this.findById(id);
 
     if (updateClinicDto.email) {
-      const emailNormalized = normalizedEmail(updateClinicDto.email);
-      const emailExist = await this.clinicRepository.findOneBy({
-        email: emailNormalized,
-      });
-
-      if (emailExist && emailExist.id !== id) {
-        throw new ConflictException(
-          "Já existe uma clínica cadastrada com este email.",
-        );
-      }
-
-      updateClinicDto.email = emailNormalized;
+      updateClinicDto.email = normalizedEmail(updateClinicDto.email);
     }
 
     Object.assign(clinic, updateClinicDto);
