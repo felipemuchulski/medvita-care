@@ -17,6 +17,9 @@ export class User extends BaseEntity {
   @Column({ type: "boolean", default: true })
   active: boolean;
 
+  @Column({ name: "is_system_admin", type: "boolean", default: false })
+  isSystemAdmin: boolean;
+
   @OneToMany(() => ClinicUser, (clinicUser) => clinicUser.user)
   clinicUsers: ClinicUser[];
 
