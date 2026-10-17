@@ -1,4 +1,5 @@
 import { Entity, Column, OneToMany, OneToOne } from "typeorm";
+import { Exclude } from "class-transformer";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { ClinicUser } from "../../clinic-users/entities/clinic-user.entity";
 import { ProfessionalProfile } from "../../professionals/entities/professional-profile.entity";
@@ -12,6 +13,7 @@ export class User extends BaseEntity {
   email: string;
 
   @Column({ name: "password_hash", type: "varchar", length: 255 })
+  @Exclude()
   passwordHash: string;
 
   @Column({ type: "boolean", default: true })
