@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   UsersRound,
@@ -8,53 +9,52 @@ import {
   Eye,
   Building2,
   UserCog,
-} from "lucide-react";
-
+} from 'lucide-react'
 
 export const navigationItems = [
   {
-    label: "Dashboard",
-    path: "/",
+    label: 'Dashboard',
+    path: '/',
     icon: LayoutDashboard,
   },
   {
-    label: "Pacientes",
-    path: "/pacientes",
+    label: 'Pacientes',
+    path: '/pacientes',
     icon: UsersRound,
   },
   {
-    label: "Agendamentos",
-    path: "/agendamentos",
+    label: 'Agendamentos',
+    path: '/agendamentos',
     icon: CalendarClock,
   },
   {
-    label: "Calendário",
-    path: "/calendario",
+    label: 'Calendário',
+    path: '/calendario',
     icon: CalendarDays,
   },
   {
-    label: "Profissionais",
-    path: "/profissionais",
+    label: 'Profissionais',
+    path: '/profissionais',
     icon: Stethoscope,
   },
   {
-    label: "Prontuários",
-    path: "/prontuarios",
+    label: 'Prontuários',
+    path: '/prontuarios',
     icon: FileText,
   },
   {
-    label: "Exames",
-    path: "/exames",
+    label: 'Exames',
+    path: '/exames',
     icon: Eye,
   },
   {
-    label: "Clínicas",
-    path: "/clinicas",
+    label: 'Clínicas',
+    path: '/clinicas',
     icon: Building2,
   },
   {
-    label: "Usuários",
-    path: "/usuarios",
+    label: 'Usuários',
+    path: '/usuarios',
     icon: UserCog,
   },
-];
+]

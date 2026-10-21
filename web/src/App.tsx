@@ -1,37 +1,22 @@
+import { Route, Routes } from 'react-router'
+import AppLayout from './components/layout/AppLayout'
+import DashboardPage from './pages/DashboardPage'
+import ModulePage from './pages/ModulePage'
 
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-background p-4 md:p-10">
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-8 rounded-xl bg-primary-dark p-6 text-white">
-          <h1 className="text-2xl font-bold">
-            Medvita Care
-          </h1>
-          <p className="mt-2 text-blue-100">
-            Sistema de gestão para clínicas oftalmológicas
-          </p>
-        </header>
-
-        <main className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {['Pacientes', 'Agendamentos', 'Calendário'].map(
-            (item) => (
-              <div
-                key={item}
-                className="rounded-xl border border-border bg-surface p-6 shadow-sm"
-              >
-                <h2 className="text-lg font-semibold text-primary-dark">
-                  {item}
-                </h2>
-                <p className="mt-2 text-sm text-text-secondary">
-                  Módulo em desenvolvimento
-                </p>
-              </div>
-            )
-          )}
-        </main>
-      </div>
-    </div>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="/pacientes" element={<ModulePage title="Pacientes" />} />
+        <Route path="/agendamentos" element={<ModulePage title="Agendamentos" />} />
+        <Route path="/calendario" element={<ModulePage title="Calendário" />} />
+        <Route path="/profissionais" element={<ModulePage title="Profissionais" />} />
+        <Route path="/prontuarios" element={<ModulePage title="Prontuários" />} />
+        <Route path="/exames" element={<ModulePage title="Exames" />} />
+        <Route path="/clinicas" element={<ModulePage title="Clínicas" />} />
+        <Route path="/usuarios" element={<ModulePage title="Usuários" />} />
+      </Route>
+    </Routes>
   )
 }
-
-export default App
