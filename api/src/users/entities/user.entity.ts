@@ -22,6 +22,9 @@ export class User extends BaseEntity {
   @Column({ name: "is_system_admin", type: "boolean", default: false })
   isSystemAdmin: boolean;
 
+  @Column({ name: "token_version", type: "integer", default: 0 })
+  tokenVersion: number;
+
   @OneToMany(() => ClinicUser, (clinicUser) => clinicUser.user)
   clinicUsers: ClinicUser[];
 

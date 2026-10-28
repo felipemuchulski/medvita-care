@@ -63,6 +63,23 @@ export class UserService {
     return userId;
   }
 
+  async findForAuthentication(id: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: {
+        clinicUsers: {
+          clinic: true,
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("Não foi encontrado um usuário com este ID.");
+    }
+
+    return user;
+  }
+
   async findByEmail(email: string) {
     const emailNormalized = normalizedEmail(email);
     const userEmail = await this.usersRepository.findOneBy({
@@ -80,6 +97,8 @@ export class UserService {
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const userExist = await this.findById(id);
+    const previousEmail = userExist.email;
+    const previousIsSystemAdmin = userExist.isSystemAdmin;
 
     if (updateUserDto.email) {
       const userEmail = normalizedEmail(updateUserDto.email);
@@ -96,18 +115,28 @@ export class UserService {
       updateUserDto.email = userEmail;
     }
     Object.assign(userExist, updateUserDto);
+
+    if (
+      userExist.email !== previousEmail ||
+      userExist.isSystemAdmin !== previousIsSystemAdmin
+    ) {
+      userExist.tokenVersion += 1;
+    }
+
     return await this.usersRepository.save(userExist);
   }
 
   async updateActive(id: string, updateActiveDto: UpdateActiveUserDto) {
     const user = await this.findById(id);
     user.active = updateActiveDto.active;
+    user.tokenVersion += 1;
     return await this.usersRepository.save(user);
   }
 
   async updatePassword(id: string, hashedPassword: string) {
     const user = await this.findById(id);
     user.passwordHash = hashedPassword;
+    user.tokenVersion += 1;
     return await this.usersRepository.save(user);
   }
 }
