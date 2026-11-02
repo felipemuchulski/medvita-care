@@ -137,6 +137,19 @@ export class ClinicUsersService {
     }));
   }
 
+  findActiveByClinicUserAndRole(
+    clinicId: string,
+    userId: string,
+    role: ClinicUserRole,
+  ): Promise<ClinicUser | null> {
+    return this.clinicUsersRepository.findOneBy({
+      clinicId,
+      userId,
+      role,
+      active: true,
+    });
+  }
+
   async updateRole(
     clinicId: string,
     userId: string,

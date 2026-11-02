@@ -15,7 +15,7 @@ export class ProfessionalProfile extends BaseEntity {
   crmState: string;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  rqe: string;
+  rqe: string | null;
 
   @Column({ type: "varchar", length: 100, default: "Oftalmologia" })
   specialty: string;
