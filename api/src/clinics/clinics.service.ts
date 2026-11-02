@@ -11,6 +11,7 @@ import { normalizedDocument } from "src/common/utils/normalize-document.util";
 import { normalizedEmail } from "src/common/utils/normalize-email.utils";
 import { UpdateClinicDto } from "./dto/update-clinic.dto";
 import { UpdateActiveDto } from "./dto/update-active.dto";
+import { isUniqueViolation } from "src/common/utils/database-error.util";
 
 @Injectable()
 export class ClinicService {
@@ -25,7 +26,9 @@ export class ClinicService {
       document: documentNormalized,
     });
 
-    const emailNormalized = normalizedEmail(createClinicDto.email);
+    const emailNormalized = createClinicDto.email
+      ? normalizedEmail(createClinicDto.email)
+      : undefined;
 
     if (documentExist) {
       throw new ConflictException(
@@ -39,7 +42,17 @@ export class ClinicService {
       email: emailNormalized,
     });
 
-    return await this.clinicRepository.save(clinic);
+    try {
+      return await this.clinicRepository.save(clinic);
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictException(
+          "Já existe uma clínica cadastrada com este documento.",
+        );
+      }
+
+      throw error;
+    }
   }
 
   async findAll() {

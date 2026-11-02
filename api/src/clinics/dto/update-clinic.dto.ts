@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from "class-validator";
+import { IsEmail, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class UpdateClinicDto {
   @IsOptional()
@@ -46,8 +40,4 @@ export class UpdateClinicDto {
   @IsString()
   @MaxLength(2)
   state?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  active?: boolean;
 }

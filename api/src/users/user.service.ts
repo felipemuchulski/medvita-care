@@ -11,8 +11,8 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { normalizedEmail } from "src/common/utils/normalize-email.utils";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UpdateActiveUserDto } from "./dto/update-active.dto";
+import { isUniqueViolation } from "src/common/utils/database-error.util";
 
-// Adicionar role ao user após módulo de autenticação
 @Injectable()
 export class UserService {
   constructor(
@@ -41,7 +41,17 @@ export class UserService {
       passwordHash: hashedPassword,
     });
 
-    return await this.usersRepository.save(user);
+    try {
+      return await this.usersRepository.save(user);
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictException(
+          "Já existe um usuário cadastrado com esse e-mail",
+        );
+      }
+
+      throw error;
+    }
   }
 
   async findAll(filters: { email?: string; active?: boolean }) {
@@ -123,7 +133,17 @@ export class UserService {
       userExist.tokenVersion += 1;
     }
 
-    return await this.usersRepository.save(userExist);
+    try {
+      return await this.usersRepository.save(userExist);
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictException(
+          "Já existe um usuário cadastrado com este e-mail",
+        );
+      }
+
+      throw error;
+    }
   }
 
   async updateActive(id: string, updateActiveDto: UpdateActiveUserDto) {
