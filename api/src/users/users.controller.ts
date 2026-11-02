@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -18,6 +19,7 @@ import { UpdateUserPasswordDto } from "./dto/update-password.dto";
 import { SystemAdmin } from "src/common/decorators/system-admin.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
+import { FindUsersQueryDto } from "./dto/find-users-query.dto";
 
 @Controller("users")
 export class UsersController {
@@ -34,29 +36,29 @@ export class UsersController {
 
   @Get()
   @SystemAdmin()
-  findAll(@Query("email") email?: string, @Query("active") active?: string) {
-    return this.userService.findAll({
-      email,
-      active: active !== undefined ? active === "true" : undefined,
-    });
+  findAll(@Query() query: FindUsersQueryDto) {
+    return this.userService.findAll(query);
   }
 
   @Get(":id")
   @SystemAdmin()
-  findById(@Param("id") id: string) {
+  findById(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.userService.findById(id);
   }
 
   @Patch(":id")
   @SystemAdmin()
-  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return this.userService.updateUser(id, updateUserDto);
   }
 
   @Patch(":id/active")
   @SystemAdmin()
   updateActive(
-    @Param("id") id: string,
+    @Param("id", new ParseUUIDPipe()) id: string,
     @Body() updateActiveDto: UpdateActiveUserDto,
   ) {
     return this.userService.updateActive(id, updateActiveDto);
@@ -64,7 +66,7 @@ export class UsersController {
 
   @Patch(":id/password")
   async updatePassword(
-    @Param("id") id: string,
+    @Param("id", new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserPasswordDto,
     @CurrentUser() currentUser: AuthenticatedUser,
   ) {

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from "@nestjs/common";
 import { ClinicService } from "./clinics.service";
 import { CreateClinicDto } from "./dto/create-clinic.dto";
 import { UpdateClinicDto } from "./dto/update-clinic.dto";
@@ -36,20 +44,23 @@ export class ClinicController {
     ClinicUserRole.OPHTHALMOLOGIST,
     ClinicUserRole.RECEPTIONIST,
   )
-  findById(@Param("id") id: string) {
+  findById(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.clinicService.findById(id);
   }
 
   @Patch(":id")
   @ClinicRoles("id", ClinicUserRole.ADMIN)
-  update(@Param("id") id: string, @Body() updateClinicDto: UpdateClinicDto) {
+  update(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() updateClinicDto: UpdateClinicDto,
+  ) {
     return this.clinicService.updateClinic(id, updateClinicDto);
   }
 
   @Patch(":id/active")
   @SystemAdmin()
   updateActive(
-    @Param("id") id: string,
+    @Param("id", new ParseUUIDPipe()) id: string,
     @Body() updateActiveDto: UpdateActiveDto,
   ) {
     return this.clinicService.updateActive(id, updateActiveDto);

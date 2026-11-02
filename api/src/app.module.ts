@@ -9,10 +9,11 @@ import { PatientsModule } from "./patients/patients.module";
 import { AppointmentsModule } from "./appointments/appointments.module";
 import { EncountersModule } from "./encounters/encounters.module";
 import { AuthModule } from "./auth/auth.module";
+import { validateEnvironment } from "./config/env.validation";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
