@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany, OneToOne } from "typeorm";
+import { Entity, Column, OneToMany, OneToOne, Relation } from "typeorm";
 import { Exclude } from "class-transformer";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { ClinicUser } from "../../clinic-users/entities/clinic-user.entity";
@@ -26,8 +26,8 @@ export class User extends BaseEntity {
   tokenVersion: number;
 
   @OneToMany(() => ClinicUser, (clinicUser) => clinicUser.user)
-  clinicUsers: ClinicUser[];
+  clinicUsers: Relation<ClinicUser[]>;
 
   @OneToOne(() => ProfessionalProfile, (profile) => profile.user)
-  professionalProfile: ProfessionalProfile;
+  professionalProfile: Relation<ProfessionalProfile>;
 }

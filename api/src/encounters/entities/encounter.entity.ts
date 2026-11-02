@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, OneToOne, JoinColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  OneToOne,
+  JoinColumn,
+  Relation,
+} from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { Clinic } from "../../clinics/entities/clinic.entity";
 import { Patient } from "../../patients/entities/patient.entity";
@@ -44,17 +51,17 @@ export class Encounter extends BaseEntity {
 
   @ManyToOne(() => Clinic, (clinic) => clinic.encounters)
   @JoinColumn({ name: "clinic_id" })
-  clinic: Clinic;
+  clinic: Relation<Clinic>;
 
   @ManyToOne(() => Patient, (patient) => patient.encounters)
   @JoinColumn({ name: "patient_id" })
-  patient: Patient;
+  patient: Relation<Patient>;
 
   @ManyToOne(() => ProfessionalProfile)
   @JoinColumn({ name: "professional_id" })
-  professional: ProfessionalProfile;
+  professional: Relation<ProfessionalProfile>;
 
   @OneToOne(() => Appointment, (appointment) => appointment.encounter)
   @JoinColumn({ name: "appointment_id" })
-  appointment: Appointment;
+  appointment: Relation<Appointment>;
 }

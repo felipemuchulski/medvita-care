@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  Relation,
+} from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { Clinic } from "../../clinics/entities/clinic.entity";
 import { User } from "../../users/entities/user.entity";
@@ -26,9 +33,9 @@ export class ClinicUser extends BaseEntity {
 
   @ManyToOne(() => Clinic, (clinic) => clinic.clinicUsers)
   @JoinColumn({ name: "clinic_id" })
-  clinic: Clinic;
+  clinic: Relation<Clinic>;
 
   @ManyToOne(() => User, (user) => user.clinicUsers)
   @JoinColumn({ name: "user_id" })
-  user: User;
+  user: Relation<User>;
 }

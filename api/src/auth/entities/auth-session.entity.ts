@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
+  Relation,
 } from "typeorm";
 import { User } from "src/users/entities/user.entity";
 
@@ -39,5 +40,5 @@ export class AuthSession {
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user: User;
+  user: Relation<User>;
 }

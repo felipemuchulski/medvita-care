@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany } from "typeorm";
+import { Entity, Column, OneToMany, Relation } from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { ClinicUser } from "../../clinic-users/entities/clinic-user.entity";
 import { Patient } from "../../patients/entities/patient.entity";
@@ -44,14 +44,14 @@ export class Clinic extends BaseEntity {
   active: boolean;
 
   @OneToMany(() => ClinicUser, (clinicUser) => clinicUser.clinic)
-  clinicUsers: ClinicUser[];
+  clinicUsers: Relation<ClinicUser[]>;
 
   @OneToMany(() => Patient, (patient) => patient.clinic)
-  patients: Patient[];
+  patients: Relation<Patient[]>;
 
   @OneToMany(() => Appointment, (appointment) => appointment.clinic)
-  appointments: Appointment[];
+  appointments: Relation<Appointment[]>;
 
   @OneToMany(() => Encounter, (encounter) => encounter.clinic)
-  encounters: Encounter[];
+  encounters: Relation<Encounter[]>;
 }

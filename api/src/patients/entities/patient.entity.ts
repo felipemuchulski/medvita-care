@@ -5,6 +5,7 @@ import {
   OneToMany,
   JoinColumn,
   Index,
+  Relation,
 } from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { Clinic } from "../../clinics/entities/clinic.entity";
@@ -67,11 +68,11 @@ export class Patient extends BaseEntity {
 
   @ManyToOne(() => Clinic, (clinic) => clinic.patients)
   @JoinColumn({ name: "clinic_id" })
-  clinic: Clinic;
+  clinic: Relation<Clinic>;
 
   @OneToMany(() => Appointment, (appointment) => appointment.patient)
-  appointments: Appointment[];
+  appointments: Relation<Appointment[]>;
 
   @OneToMany(() => Encounter, (encounter) => encounter.patient)
-  encounters: Encounter[];
+  encounters: Relation<Encounter[]>;
 }
