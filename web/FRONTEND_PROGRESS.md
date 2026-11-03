@@ -140,3 +140,98 @@ Etapa 2: integrar `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` 
 ### Próxima etapa recomendada
 
 Etapa 3: carregar `GET /users/:userId/clinics`, selecionar somente vínculos ativos autorizados, apresentar a clínica no layout e limpar o cache ao trocar de contexto.
+
+## 2026-11-03 — Clínica ativa mínima e módulo de pacientes
+
+### Funcionalidades implementadas
+
+- Carregamento dos vínculos do usuário autenticado e interseção com os papéis ativos devolvidos no login.
+- Seleção automática quando existe uma única clínica e seletor acessível quando existem várias.
+- Bloqueio de acesso clínico para administrador global sem vínculo ativo.
+- Limpeza de caches clínicos ao trocar de clínica, sem persistência no navegador.
+- Listagem de pacientes com busca por nome/CPF, filtro de status e paginação.
+- Visualizações responsivas em cartões no mobile e tabela no desktop.
+- Cadastro e edição com validação por campo, CPF, nascimento, e-mail, CEP e UF.
+- Normalização de CPF, CEP, e-mail, campos opcionais e UF antes do envio.
+- Detalhes cadastrais com ações condicionadas ao papel.
+- Ativação e desativação com confirmação, exclusiva para `ADMIN`.
+- Estados de carregamento, erro, lista vazia e feedback de sucesso.
+- Área reservada para histórico clínico sem dados simulados.
+
+### Arquivos criados
+
+- `src/contexts/clinic-context.ts`
+- `src/contexts/ClinicProvider.tsx`
+- `src/hooks/use-clinic.ts`
+- `src/features/clinics/api/clinics-api.ts`
+- `src/features/clinics/lib/allowed-memberships.ts`
+- `src/features/clinics/lib/allowed-memberships.test.ts`
+- `src/features/clinics/types/clinic.ts`
+- `src/features/patients/api/patients-api.ts`
+- `src/features/patients/api/patients-api.test.ts`
+- `src/features/patients/components/PatientForm.tsx`
+- `src/features/patients/components/PatientStatusBadge.tsx`
+- `src/features/patients/components/PatientsUnavailable.tsx`
+- `src/features/patients/hooks/use-patients.ts`
+- `src/features/patients/lib/patient-format.ts`
+- `src/features/patients/lib/patient-permissions.ts`
+- `src/features/patients/lib/patient-permissions.test.ts`
+- `src/features/patients/lib/patient-schema.ts`
+- `src/features/patients/lib/patient-schema.test.ts`
+- `src/features/patients/pages/PatientsPage.tsx`
+- `src/features/patients/pages/CreatePatientPage.tsx`
+- `src/features/patients/pages/EditPatientPage.tsx`
+- `src/features/patients/pages/PatientDetailsPage.tsx`
+- Dependências adicionadas: React Hook Form, Zod e `@hookform/resolvers`.
+
+### Arquivos modificados
+
+- `package.json`
+- `package-lock.json`
+- `src/main.tsx`
+- `src/App.tsx`
+- `src/components/layout/Header.tsx`
+- `src/components/layout/Sidebar.tsx`
+
+### Endpoints integrados
+
+- `GET /users/:userId/clinics`
+- `GET /clinics/:clinicId/patients`
+- `POST /clinics/:clinicId/patients`
+- `GET /clinics/:clinicId/patients/:id`
+- `PATCH /clinics/:clinicId/patients/:id`
+- `PATCH /clinics/:clinicId/patients/:id/active`
+
+### Permissões aplicadas
+
+- `ADMIN`: consulta, cadastro, edição e alteração de status.
+- `RECEPTIONIST`: consulta, cadastro e edição; sem alteração de status.
+- `OPHTHALMOLOGIST`: somente consulta.
+- `isSystemAdmin`: não recebe acesso a pacientes sem vínculo clínico ativo.
+
+### Decisões arquiteturais
+
+- Todas as query keys de pacientes incluem `clinicId`.
+- A clínica escolhida permanece apenas em memória e é validada contra vínculo, clínica e papel ativos.
+- CPF e demais dados pessoais não são persistidos fora do cache em memória.
+- O formulário de cadastro e edição é compartilhado, mas as mutations e rotas permanecem explícitas.
+- Erros de CPF retornados pelo servidor são associados ao campo de CPF; demais erros usam feedback geral seguro.
+
+### Validações e testes
+
+- `npm.cmd test`: 6 arquivos e 16 testes aprovados.
+- `npm.cmd run lint`: aprovado sem erros ou avisos.
+- `npx.cmd tsc --noEmit -p tsconfig.app.json`: aprovado.
+- `npm.cmd run build`: aprovado com 2.187 módulos transformados.
+- Testes cobrem permissões, validação/normalização, isolamento de vínculos e contratos HTTP de pacientes.
+
+### Problemas e limitações
+
+- A fundação de clínica ativa mencionada no pedido ainda não existia na branch e precisou ser implementada no escopo mínimo necessário.
+- Não houve teste E2E com API/PostgreSQL por ausência de credenciais e ambiente homologado nesta execução.
+- O histórico clínico depende da futura integração do EncountersModule e permanece apenas como organização visual informativa.
+- A instalação continua reportando 12 vulnerabilidades moderadas no grafo npm, sem correção automática potencialmente incompatível.
+
+### Próxima etapa recomendada
+
+Homologar o fluxo de pacientes contra a API e PostgreSQL reais. Depois disso, avançar para profissionais ou agenda sem alterar o módulo de pacientes já validado estaticamente.
