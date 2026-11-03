@@ -18,6 +18,8 @@ import { UpdatePatientDto } from "./dto/update-patient.dto";
 import { Patient } from "./entities/patient.entity";
 import { isFutureDateOnly, isValidDateOnly } from "./utils/date-only.util";
 import { isValidCpf, normalizeCpf } from "./utils/cpf.util";
+import { AuditService } from "src/audit/audit.service";
+import { AuditAction } from "src/audit/entities/audit-log.entity";
 
 const BRAZILIAN_STATES = new Set([
   "AC",
@@ -55,6 +57,7 @@ export class PatientsService {
     @InjectRepository(Patient)
     private readonly patientsRepository: Repository<Patient>,
     private readonly clinicService: ClinicService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(
@@ -90,7 +93,22 @@ export class PatientsService {
     });
 
     try {
-      return await this.patientsRepository.save(patient);
+      return await this.patientsRepository.manager.transaction(
+        async (manager) => {
+          const saved = await manager.getRepository(Patient).save(patient);
+          await this.auditService.record(
+            {
+              actorId: currentUser.sub,
+              clinicId,
+              action: AuditAction.PATIENT_CREATED,
+              resourceType: "Patient",
+              resourceId: saved.id,
+            },
+            manager,
+          );
+          return saved;
+        },
+      );
     } catch (error: unknown) {
       this.handleUniqueViolation(error);
       throw error;
@@ -145,6 +163,14 @@ export class PatientsService {
       .take(limit)
       .getManyAndCount();
 
+    await this.auditService.recordSensitiveRead({
+      actorId: currentUser.sub,
+      clinicId,
+      action: AuditAction.PATIENT_READ,
+      resourceType: "PatientList",
+      metadata: { resultCount: data.length, page },
+    });
+
     return {
       data,
       meta: {
@@ -163,7 +189,15 @@ export class PatientsService {
       ClinicUserRole.RECEPTIONIST,
     ]);
     await this.validateActiveClinic(clinicId);
-    return this.findPatientInClinic(clinicId, id);
+    const patient = await this.findPatientInClinic(clinicId, id);
+    await this.auditService.recordSensitiveRead({
+      actorId: currentUser.sub,
+      clinicId,
+      action: AuditAction.PATIENT_READ,
+      resourceType: "Patient",
+      resourceId: patient.id,
+    });
+    return patient;
   }
 
   async update(
@@ -222,7 +256,23 @@ export class PatientsService {
     }
 
     try {
-      return await this.patientsRepository.save(patient);
+      return await this.patientsRepository.manager.transaction(
+        async (manager) => {
+          const saved = await manager.getRepository(Patient).save(patient);
+          await this.auditService.record(
+            {
+              actorId: currentUser.sub,
+              clinicId,
+              action: AuditAction.PATIENT_UPDATED,
+              resourceType: "Patient",
+              resourceId: saved.id,
+              metadata: { changedFields: Object.keys(dto) },
+            },
+            manager,
+          );
+          return saved;
+        },
+      );
     } catch (error: unknown) {
       this.handleUniqueViolation(error);
       throw error;
@@ -239,7 +289,21 @@ export class PatientsService {
     await this.validateActiveClinic(clinicId);
     const patient = await this.findPatientInClinic(clinicId, id);
     patient.active = dto.active;
-    return this.patientsRepository.save(patient);
+    return this.patientsRepository.manager.transaction(async (manager) => {
+      const saved = await manager.getRepository(Patient).save(patient);
+      await this.auditService.record(
+        {
+          actorId: currentUser.sub,
+          clinicId,
+          action: AuditAction.PATIENT_STATUS_CHANGED,
+          resourceType: "Patient",
+          resourceId: saved.id,
+          metadata: { active: saved.active },
+        },
+        manager,
+      );
+      return saved;
+    });
   }
 
   async findActiveForClinic(clinicId: string, id: string): Promise<Patient> {

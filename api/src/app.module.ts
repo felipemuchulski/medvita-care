@@ -10,6 +10,7 @@ import { AppointmentsModule } from "./appointments/appointments.module";
 import { EncountersModule } from "./encounters/encounters.module";
 import { AuthModule } from "./auth/auth.module";
 import { validateEnvironment } from "./config/env.validation";
+import { AuditModule } from "./audit/audit.module";
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { validateEnvironment } from "./config/env.validation";
     PatientsModule,
     AppointmentsModule,
     EncountersModule,
+    AuditModule,
     AuthModule,
   ],
 })

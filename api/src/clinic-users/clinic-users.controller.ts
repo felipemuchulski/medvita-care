@@ -28,8 +28,9 @@ export class ClinicUsersController {
   create(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Body() dto: CreateClinicUserDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ) {
-    return this.clinicUsersService.create(clinicId, dto);
+    return this.clinicUsersService.create(clinicId, dto, currentUser);
   }
 
   @Get("clinics/:clinicId/users")
@@ -63,8 +64,14 @@ export class ClinicUsersController {
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("userId", uuidPipe) userId: string,
     @Body() dto: UpdateClinicUserRoleDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ) {
-    return this.clinicUsersService.updateRole(clinicId, userId, dto);
+    return this.clinicUsersService.updateRole(
+      clinicId,
+      userId,
+      dto,
+      currentUser,
+    );
   }
 
   @Patch("clinics/:clinicId/users/:userId/active")
@@ -73,7 +80,13 @@ export class ClinicUsersController {
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("userId", uuidPipe) userId: string,
     @Body() dto: UpdateClinicUserActiveDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ) {
-    return this.clinicUsersService.updateActive(clinicId, userId, dto);
+    return this.clinicUsersService.updateActive(
+      clinicId,
+      userId,
+      dto,
+      currentUser,
+    );
   }
 }

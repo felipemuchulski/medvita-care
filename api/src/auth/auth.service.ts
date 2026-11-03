@@ -17,6 +17,8 @@ import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { AuthSession } from "./entities/auth-session.entity";
 import { RevokedToken } from "./entities/revoked-token.entity";
 import { AuthenticatedClinicRole, JwtPayload } from "./types/jwt-payload.type";
+import { AuditService } from "src/audit/audit.service";
+import { AuditAction } from "src/audit/entities/audit-log.entity";
 
 @Injectable()
 export class AuthService {
@@ -35,6 +37,7 @@ export class AuthService {
     private readonly sessionsRepository: Repository<AuthSession>,
     @InjectRepository(RevokedToken)
     private readonly revokedTokensRepository: Repository<RevokedToken>,
+    private readonly auditService: AuditService,
   ) {
     this.accessTokenTtl = this.getNumberConfig(
       "JWT_ACCESS_EXPIRES_IN_SECONDS",
@@ -70,19 +73,31 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.findUserByEmail(loginDto.email);
+    let user: User;
+    try {
+      user = await this.findUserByEmail(loginDto.email);
 
-    if (!user.active) {
-      throw new UnauthorizedException("E-mail ou senha inválidos.");
-    }
+      if (!user.active) {
+        throw new UnauthorizedException("E-mail ou senha inválidos.");
+      }
 
-    const passwordIsValid = await this.hashingService.compare(
-      loginDto.password,
-      user.passwordHash,
-    );
+      const passwordIsValid = await this.hashingService.compare(
+        loginDto.password,
+        user.passwordHash,
+      );
 
-    if (!passwordIsValid) {
-      throw new UnauthorizedException("E-mail ou senha inválidos.");
+      if (!passwordIsValid) {
+        throw new UnauthorizedException("E-mail ou senha inválidos.");
+      }
+    } catch (error: unknown) {
+      if (error instanceof UnauthorizedException) {
+        await this.auditService.recordBestEffort({
+          action: AuditAction.LOGIN_FAILED,
+          resourceType: "Authentication",
+          metadata: { reason: "INVALID_CREDENTIALS" },
+        });
+      }
+      throw error;
     }
 
     const authenticatedUser = await this.userService.findForAuthentication(
@@ -101,6 +116,13 @@ export class AuthService {
         revokedAt: null,
       }),
     );
+
+    await this.auditService.recordBestEffort({
+      actorId: user.id,
+      action: AuditAction.LOGIN_SUCCEEDED,
+      resourceType: "Authentication",
+      resourceId: user.id,
+    });
 
     return this.buildAuthResponse(authenticatedUser, tokens);
   }
@@ -162,6 +184,13 @@ export class AuthService {
       },
       ["jti"],
     );
+
+    await this.auditService.recordBestEffort({
+      actorId: user.sub,
+      action: AuditAction.LOGOUT,
+      resourceType: "Authentication",
+      resourceId: user.sub,
+    });
 
     return { message: "Logout realizado com sucesso." };
   }

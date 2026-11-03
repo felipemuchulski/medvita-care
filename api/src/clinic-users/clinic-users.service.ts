@@ -13,6 +13,9 @@ import { CreateClinicUserDto } from "./dto/create-clinic-user.dto";
 import { UpdateClinicUserRoleDto } from "./dto/update-clinic-user-role.dto";
 import { UpdateClinicUserActiveDto } from "./dto/update-clinic-user-active.dto";
 import { ClinicUser, ClinicUserRole } from "./entities/clinic-user.entity";
+import { AuditService } from "src/audit/audit.service";
+import { AuditAction } from "src/audit/entities/audit-log.entity";
+import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
 
 @Injectable()
 export class ClinicUsersService {
@@ -21,9 +24,14 @@ export class ClinicUsersService {
     private readonly clinicUsersRepository: Repository<ClinicUser>,
     private readonly clinicService: ClinicService,
     private readonly userService: UserService,
+    private readonly auditService: AuditService,
   ) {}
 
-  async create(clinicId: string, dto: CreateClinicUserDto) {
+  async create(
+    clinicId: string,
+    dto: CreateClinicUserDto,
+    currentUser: AuthenticatedUser,
+  ) {
     const [clinic, user] = await Promise.all([
       this.clinicService.findById(clinicId),
       this.userService.findById(dto.userId),
@@ -69,7 +77,25 @@ export class ClinicUsersService {
     });
 
     try {
-      return await this.clinicUsersRepository.save(membership);
+      return await this.clinicUsersRepository.manager.transaction(
+        async (manager) => {
+          const saved = await manager
+            .getRepository(ClinicUser)
+            .save(membership);
+          await this.auditService.record(
+            {
+              actorId: currentUser.sub,
+              clinicId,
+              action: AuditAction.CLINIC_MEMBERSHIP_CREATED,
+              resourceType: "ClinicUser",
+              resourceId: saved.id,
+              metadata: { userId: saved.userId, role: saved.role },
+            },
+            manager,
+          );
+          return saved;
+        },
+      );
     } catch (error: unknown) {
       if (isUniqueViolation(error)) {
         throw new ConflictException(
@@ -154,6 +180,7 @@ export class ClinicUsersService {
     clinicId: string,
     userId: string,
     dto: UpdateClinicUserRoleDto,
+    currentUser: AuthenticatedUser,
   ) {
     await Promise.all([
       this.clinicService.findById(clinicId),
@@ -180,8 +207,21 @@ export class ClinicUsersService {
         );
       }
 
+      const previousRole = membership.role;
       membership.role = dto.role;
-      return repository.save(membership);
+      const saved = await repository.save(membership);
+      await this.auditService.record(
+        {
+          actorId: currentUser.sub,
+          clinicId,
+          action: AuditAction.CLINIC_MEMBERSHIP_ROLE_CHANGED,
+          resourceType: "ClinicUser",
+          resourceId: saved.id,
+          metadata: { userId, previousRole, role: saved.role },
+        },
+        manager,
+      );
+      return saved;
     });
   }
 
@@ -189,6 +229,7 @@ export class ClinicUsersService {
     clinicId: string,
     userId: string,
     dto: UpdateClinicUserActiveDto,
+    currentUser: AuthenticatedUser,
   ) {
     const [clinic, user] = await Promise.all([
       this.clinicService.findById(clinicId),
@@ -237,8 +278,21 @@ export class ClinicUsersService {
         );
       }
 
+      const previousActive = membership.active;
       membership.active = dto.active;
-      return repository.save(membership);
+      const saved = await repository.save(membership);
+      await this.auditService.record(
+        {
+          actorId: currentUser.sub,
+          clinicId,
+          action: AuditAction.CLINIC_MEMBERSHIP_STATUS_CHANGED,
+          resourceType: "ClinicUser",
+          resourceId: saved.id,
+          metadata: { userId, previousActive, active: saved.active },
+        },
+        manager,
+      );
+      return saved;
     });
   }
 

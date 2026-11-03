@@ -12,6 +12,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthSession } from "./entities/auth-session.entity";
 import { RevokedToken } from "./entities/revoked-token.entity";
 import { AuthorizationGuard } from "./guards/authorization.guard";
+import { AuditModule } from "src/audit/audit.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthorizationGuard } from "./guards/authorization.guard";
     HashingModule,
     ConfigModule,
     TypeOrmModule.forFeature([AuthSession, RevokedToken]),
+    AuditModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
