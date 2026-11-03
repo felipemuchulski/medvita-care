@@ -6,6 +6,10 @@ import PublicOnlyRoute from './features/auth/routes/PublicOnlyRoute'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
+import PatientsPage from './features/patients/pages/PatientsPage'
+import CreatePatientPage from './features/patients/pages/CreatePatientPage'
+import EditPatientPage from './features/patients/pages/EditPatientPage'
+import PatientDetailsPage from './features/patients/pages/PatientDetailsPage'
 
 export default function App() {
   return (
@@ -17,7 +21,10 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="/pacientes" element={<ModulePage title="Pacientes" />} />
+          <Route path="/pacientes" element={<PatientsPage />} />
+          <Route path="/pacientes/novo" element={<CreatePatientPage />} />
+          <Route path="/pacientes/:patientId" element={<PatientDetailsPage />} />
+          <Route path="/pacientes/:patientId/editar" element={<EditPatientPage />} />
           <Route path="/agendamentos" element={<ModulePage title="Agendamentos" />} />
           <Route path="/calendario" element={<ModulePage title="Calendário" />} />
           <Route path="/profissionais" element={<ModulePage title="Profissionais" />} />

@@ -17,7 +17,9 @@ export default function Header({
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const currentPage = navigationItems.find(
-    (item) => item.path === location.pathname
+    (item) =>
+      item.path === location.pathname ||
+      (item.path !== '/' && location.pathname.startsWith(`${item.path}/`))
   )
 
   return (
