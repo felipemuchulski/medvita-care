@@ -2,6 +2,7 @@
 import { Eye, X } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { navigationItems } from '../../app/navigation'
+import { useClinic } from '../../hooks/use-clinic'
 
 interface SidebarProps {
   isOpen: boolean
@@ -12,6 +13,15 @@ export default function Sidebar({
   isOpen,
   onClose,
 }: SidebarProps) {
+  const {
+    memberships,
+    activeClinicId,
+    activeRole,
+    isLoading,
+    error,
+    selectClinic,
+  } = useClinic()
+
   return (
     <>
       {isOpen && (
@@ -59,6 +69,35 @@ export default function Sidebar({
           >
             <X size={20} />
           </button>
+        </div>
+
+        <div className="border-y border-white/10 px-4 py-4">
+          <label htmlFor="active-clinic" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-300">
+            Clínica ativa
+          </label>
+          {isLoading ? (
+            <p className="text-sm text-blue-100" role="status">Carregando clínicas...</p>
+          ) : memberships.length > 0 ? (
+            <>
+              <select
+                id="active-clinic"
+                value={activeClinicId ?? ''}
+                onChange={(event) => selectClinic(event.target.value)}
+                className="min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none focus:border-white focus:ring-2 focus:ring-white/30"
+              >
+                {memberships.length > 1 && <option value="" disabled className="text-slate-900">Selecione uma clínica</option>}
+                {memberships.map((membership) => (
+                  <option key={membership.clinicId} value={membership.clinicId} className="text-slate-900">
+                    {membership.clinic?.name ?? membership.clinicId}
+                  </option>
+                ))}
+              </select>
+              {activeRole && <p className="mt-2 text-xs text-blue-200">Perfil: {activeRole}</p>}
+            </>
+          ) : (
+            <p className="text-sm text-blue-100">Nenhuma clínica autorizada.</p>
+          )}
+          {error && <p role="alert" className="mt-2 text-xs text-red-200">{error}</p>}
         </div>
 
         <nav

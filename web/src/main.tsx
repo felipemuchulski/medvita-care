@@ -6,15 +6,18 @@ import { BrowserRouter } from 'react-router'
 import App from './App'
 import './index.css'
 import { AuthProvider } from './contexts/AuthProvider'
+import { ClinicProvider } from './contexts/ClinicProvider'
 import { queryClient } from './lib/query-client'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <ClinicProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ClinicProvider>
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>
