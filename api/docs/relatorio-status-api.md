@@ -1,8 +1,174 @@
 # MedVita Care — Documentação e status da API
 
-**Última atualização:** 28 de outubro de 2026
+**Última atualização:** 2 de novembro de 2026
 **Escopo analisado:** código-fonte atual do diretório `api/src`
 **Tecnologias principais:** NestJS, TypeScript, TypeORM, PostgreSQL, Passport, JWT, bcrypt, class-validator e class-transformer
+
+> **Atualização de implementação:** as correções P0 e o `ClinicUsersModule` foram entregues em 2 de novembro de 2026. Consulte o relatório detalhado em `docs/relatorio-execucao-backend-2026-11-02.md`.
+
+---
+
+## 0. Atualização executiva para planejamento
+
+### 0.1. Leitura rápida
+
+O back-end possui uma base técnica utilizável, porém ainda não está concluído como produto. Autenticação, autorização, usuários e clínicas já têm rotas HTTP; os fluxos centrais da operação clínica ainda estão apenas modelados no banco.
+
+O caminho crítico para o MVP é:
+
+```text
+Fundação, Usuários por clínica, Profissionais e Pacientes (entregues)
+        ↓
+Agendamentos
+        ↓
+Atendimentos
+        ↓
+Auditoria, segurança operacional e preparação para produção
+```
+
+Usuários por Clínica, Profissionais e Pacientes foram implementados. O perfil profissional é global por usuário, enquanto pacientes pertencem diretamente a uma clínica e são isolados por `clinicId`. A próxima etapa funcional recomendada é Agendamentos.
+
+### 0.2. Principais alterações já realizadas
+
+| Período/entrega | Alteração principal | Resultado atual |
+| --- | --- | --- |
+| Estrutura inicial | Entidades de clínicas, usuários, vínculos, profissionais, pacientes, agendamentos e atendimentos | Modelo de domínio criado |
+| Persistência | PostgreSQL, TypeORM, `DataSource`, scripts e migrations | Base de banco configurada |
+| Cadastros iniciais | Controllers, services e DTOs de Clínicas e Usuários | CRUD parcial disponível por HTTP |
+| Segurança de senha | Contrato de hashing e implementação com bcrypt | Senhas persistidas como hash |
+| Autenticação | Login, access token, refresh token, sessões persistidas, rotação e logout | Fluxo implementado, ainda sem testes automatizados |
+| Revogação | `tokenVersion`, blacklist e revogação de sessões | Alterações sensíveis invalidam tokens anteriores |
+| Autorização | Guard global, administrador do sistema e papéis por clínica | Aplicado às rotas atuais de Usuários, Clínicas, vínculos, Profissionais e Pacientes |
+| Usuários por clínica | Gestão de vínculos, papéis e status | Base funcional para isolamento dos módulos clínicos |
+| Profissionais | DTOs, service, controller, normalização e RBAC | Perfis globais disponíveis no contexto autorizado da clínica |
+| Pacientes | CRUD lógico, CPF, paginação, filtros e RBAC | Cadastros isolados e pesquisáveis por clínica |
+| Documentação | Relatório técnico da API e variáveis de ambiente de exemplo | Base documental existente |
+
+Os commits mais recentes da API concentraram-se em autenticação, autorização, Usuários por Clínica, Profissionais e correções de fundação. Nesta execução, o PatientsModule foi implementado; as alterações preexistentes no diretório `web` não fizeram parte da análise nem foram modificadas.
+
+### 0.3. Estado real de prontidão
+
+| Área | Prontidão | Observação para o cronograma |
+| --- | --- | --- |
+| Autenticação | Implementada, não homologada | Precisa de testes unitários/E2E e validação com banco limpo |
+| Autorização | Implementada nas rotas atuais | Precisa de testes de acesso cruzado entre clínicas |
+| Usuários | Parcial | CRUD administrativo existe; faltam paginação, contratos de erro e cobertura de testes |
+| Clínicas | Parcial, com correções bloqueadoras | CRUD existe, mas há falhas descritas na seção 0.4 |
+| Usuários por clínica | Funcional | DTOs, service, controller, rotas, isolamento e proteção do último administrador implementados |
+| Profissionais | Funcional | Cadastro, atualização e consultas com CRM/UF, vínculo ativo e isolamento por clínica |
+| Pacientes | Funcional | Cadastro, atualização, status, CPF, busca, paginação e isolamento por clínica |
+| Agendamentos | Apenas estrutural | Sem API, conflitos de agenda ou transições de estado |
+| Atendimentos | Apenas estrutural | Sem API, prontuário operacional, histórico ou auditoria |
+| Testes automatizados | Ausente | Existem dependências de teste, mas não há specs nem script `test` |
+| Operação/produção | Pendente | Sem health check, Swagger, logs estruturados, rate limit ou rotina de limpeza |
+
+### 0.4. Bloqueadores e riscos encontrados
+
+#### P0 — situação após a implementação
+
+1. **Clínica sem e-mail:** corrigido; a normalização só ocorre quando o e-mail é informado.
+2. **Alteração indevida de `active`:** corrigido; o campo foi removido de `UpdateClinicDto` e campos desconhecidos são rejeitados.
+3. **Primeiro administrador:** criação automatizada removida por decisão do projeto; o cadastro inicial será manual no PostgreSQL via DBeaver, preservando `isSystemAdmin` e o hash bcrypt.
+4. **Extensão UUID:** migration compatível adicionada antes da migration histórica.
+5. **Testes:** 23 testes temporários foram aprovados e removidos conforme o escopo da execução; uma suíte permanente ainda é necessária.
+
+#### P1 — resolver junto com os primeiros módulos
+
+- configurar `ValidationPipe` com `whitelist`, `forbidNonWhitelisted` e `transform`;
+- validar parâmetros com `ParseUUIDPipe` para retornar 400 em UUID inválido;
+- validar corretamente filtros booleanos; hoje qualquer valor diferente de `"true"` pode ser interpretado como falso;
+- adicionar paginação e limites máximos às listagens;
+- padronizar respostas de erro e restrições de unicidade vindas do banco;
+- validar variáveis de ambiente no bootstrap, não apenas ao primeiro uso;
+- testar migrations `up` e `down` em banco descartável;
+- remover o comentário obsoleto sobre adicionar papel ao usuário em `UserService`.
+
+#### P2 — necessário antes de produção
+
+- Swagger/OpenAPI e versionamento de API;
+- CORS explícito, headers de segurança e rate limit, especialmente no login;
+- logs estruturados, correlation ID, métricas e health/readiness checks;
+- limpeza periódica de sessões e tokens revogados expirados;
+- recuperação de senha e/ou convite inicial de usuário;
+- política de segredos e configuração por ambiente;
+- trilha de auditoria para leitura e alteração de dados clínicos;
+- revisão LGPD: finalidade, acesso mínimo, retenção, exportação e anonimização/exclusão aplicável;
+- estratégia de backup, restauração e migração em deploy.
+
+### 0.5. Módulos principais que faltam
+
+#### Obrigatórios para o fluxo principal do MVP
+
+| Ordem | Módulo | Entregas mínimas | Dependência |
+| --- | --- | --- | --- |
+| Concluído | Usuários por clínica | Vínculos, status, papéis, listagens, duplicidade, isolamento e último administrador | Usuários e Clínicas |
+| Concluído | Profissionais | Perfil global, CRM/UF, consultas, vínculo oftalmologista ativo e isolamento por clínica | Usuários por clínica |
+| Concluído | Pacientes | CRUD lógico, CPF, filtros, paginação, ativação e isolamento por `clinicId` | Autorização por clínica |
+| 1 | Agendamentos | Criar, reagendar, cancelar, listar por período/status/profissional/paciente, detectar conflito e controlar status | Profissionais e Pacientes |
+| 2 | Atendimentos | Iniciar, concluir, cancelar, vincular agendamento, validar participantes, registrar dados clínicos e transições | Agendamentos |
+| 3 | Auditoria clínica | Registrar ator, clínica, ação, recurso e data; cobrir leitura/alteração de informação sensível | Todos os módulos clínicos |
+
+#### Módulos técnicos necessários para uma entrega operável
+
+- **Testes e fixtures:** banco de teste, factories/seeds e cenários E2E multi-clínica;
+- **Observabilidade:** health check, logs estruturados, métricas e rastreabilidade;
+- **Jobs de manutenção:** expiração/limpeza de sessões e blacklist;
+- **Documentação da API:** OpenAPI, exemplos e contratos de erro;
+- **Administração inicial:** procedimento operacional manual documentado, sem endpoint, seed ou comando automático.
+
+#### Escopo que precisa de decisão de produto
+
+Os itens abaixo não aparecem no código atual e não devem ser assumidos como parte do MVP sem validação de requisitos:
+
+- exames, laudos, prescrições e anexos;
+- notificações por e-mail, SMS ou WhatsApp;
+- confirmação automática e lista de espera;
+- faturamento, convênios e cobrança;
+- múltiplas agendas, salas ou equipamentos;
+- portal do paciente;
+- consentimentos e assinatura eletrônica.
+
+### 0.6. Cronograma sugerido
+
+Estimativa indicativa para **uma pessoa desenvolvedora de back-end**, em sprints de duas semanas, incluindo testes e documentação. O total esperado para um MVP técnico é de aproximadamente **8 a 12 semanas**, com margem adicional para homologação e mudanças de regra de negócio.
+
+| Sprint | Objetivo | Critério de saída |
+| --- | --- | --- |
+| 0 | Corrigir P0, criar infraestrutura de testes, documentar o administrador inicial manual e validar migrations em banco limpo | Build/lint/test aprovados e ambiente criado do zero |
+| 1 | Implementar Usuários por Clínica e matriz formal de permissões | Vínculos e papéis cobertos por E2E, inclusive acesso cruzado negado |
+| 2 | Implementar Profissionais e Pacientes | CRUDs paginados, normalizados e isolados por clínica |
+| 3 | Implementar Agendamentos | Criação, consulta, reagendamento, cancelamento e conflitos testados |
+| 4 | Implementar Atendimentos | Fluxo iniciar/concluir/cancelar e vínculo com agenda testados |
+| 5 | Auditoria, documentação, observabilidade, jobs e hardening | Checklist de produção e homologação concluído |
+
+Se Agendamentos possuir muitas regras de grade, recorrência, encaixe ou bloqueio de agenda, ele deve ocupar dois sprints. Testes não devem ser deixados para a última sprint: cada módulo só avança quando seus cenários de autorização e isolamento estiverem cobertos.
+
+**Progresso atual:** as correções de fundação, `ClinicUsersModule`, `ProfessionalsModule` e `PatientsModule` foram entregues. A próxima sprint funcional é Agendamentos. Permanecem pendentes a homologação em PostgreSQL descartável e uma suíte permanente de testes.
+
+### 0.7. Definição de back-end concluído
+
+O back-end pode ser considerado pronto para homologação quando:
+
+- uma instalação vazia cria o banco e possui procedimento manual seguro e documentado para o primeiro administrador;
+- todos os módulos obrigatórios possuem DTO, service, controller, autorização e testes;
+- nenhuma consulta clínica aceita acesso cruzado entre clínicas;
+- conflitos e transições de estado possuem regras explícitas e testes;
+- dados clínicos sensíveis possuem trilha de auditoria;
+- migrations são testadas e o deploy possui plano de rollback/backup;
+- contratos estão publicados no OpenAPI;
+- logs, health checks e alertas mínimos estão disponíveis;
+- build, lint, testes unitários e E2E fazem parte do CI;
+- os critérios de LGPD definidos para o produto foram validados.
+
+### 0.8. Resultado da validação de 2 de novembro de 2026
+
+| Verificação | Resultado |
+| --- | --- |
+| `npm.cmd run build` | Aprovado |
+| `npm.cmd run lint` | Aprovado, sem erros exibidos |
+| Testes automatizados | 23 testes temporários aprovados e posteriormente removidos; suíte permanente ainda ausente |
+| Migration em PostgreSQL limpo | Não executada nesta auditoria; permanece como item obrigatório |
+| Teste funcional com credenciais e banco real | Não executado nesta auditoria |
 
 ---
 
@@ -28,21 +194,21 @@ O domínio atual contempla:
 
 A API possui infraestrutura de aplicação, conexão com PostgreSQL, migrations e as principais entidades do domínio. Os módulos de Clínicas e Usuários possuem controller, service, DTOs e rotas HTTP. O módulo de Autenticação possui access e refresh tokens, sessões persistidas, rotação de refresh token, logout com revogação, blacklist, validação do usuário no banco e autorização por papéis.
 
-Os módulos de Usuários por Clínica, Profissionais, Pacientes, Agendamentos e Atendimentos já fazem parte do modelo de dados, mas ainda não possuem services, DTOs e controllers para disponibilizar suas funcionalidades pela API.
+Os módulos de Usuários por Clínica, Profissionais e Pacientes já estão disponíveis pela API. Agendamentos e Atendimentos ainda possuem apenas as entidades e precisam das camadas de aplicação.
 
 ### Status geral dos módulos
 
 | Módulo/área | Estado atual | O que já existe |
 | --- | --- | --- |
-| Aplicação e configuração | Funcional | Bootstrap, variáveis de ambiente, validação e serialização globais |
-| Banco de dados | Funcional/estrutural | PostgreSQL, TypeORM, entidades e migration |
-| Autenticação | Funcional | Login, access/refresh tokens, sessões, rotação, logout, blacklist, strategy, guards e troca de senha |
-| Usuários | Funcional | Entidade, DTOs, service, controller e rotas |
-| Clínicas | Funcional | Entidade, DTOs, service, controller e rotas |
+| Aplicação e configuração | Parcial | Bootstrap, variáveis de ambiente, validação e serialização globais; faltam validação de ambiente e hardening do pipe |
+| Banco de dados | Funcional/estrutural | PostgreSQL, TypeORM, entidades e migrations; execução limpa ainda precisa ser validada |
+| Autenticação | Implementada, não homologada | Login, access/refresh tokens, sessões, rotação, logout, blacklist, strategy, guards e troca de senha |
+| Usuários | Parcial | Entidade, DTOs, service, controller e rotas; faltam paginação e testes |
+| Clínicas | Parcial | Entidade, DTOs, service, controller e rotas; possui correções P0 pendentes |
 | Hashing de senhas | Funcional | Contrato abstrato e implementação bcrypt |
-| Usuários por clínica | Estrutural | Entidade, papéis e relacionamentos |
-| Profissionais | Estrutural | Entidade de perfil profissional |
-| Pacientes | Estrutural | Entidade e relacionamentos |
+| Usuários por clínica | Funcional | Entidade, DTOs, service, controller, papéis e relacionamentos |
+| Profissionais | Funcional | Entidade, DTOs, service, controller, normalização, RBAC e consultas por clínica |
+| Pacientes | Funcional | Entidade, DTOs, service, controller, CPF, paginação, filtros e isolamento por clínica |
 | Agendamentos | Estrutural | Entidade, estados e relacionamentos |
 | Atendimentos | Estrutural | Entidade, estados e relacionamentos |
 | Autorização por papéis | Funcional no escopo HTTP atual | Administrador do sistema, papéis por clínica, vínculo e clínica ativos |
@@ -830,7 +996,7 @@ Assim, `UsersModule` e `AuthModule` dependem do contrato `HashingService`, não 
 
 ## 11. Módulos estruturais
 
-Os módulos desta seção estão importados pelo `AppModule` e registram suas entidades no TypeORM. Ainda não possuem controller, service ou DTOs próprios.
+Os módulos desta seção estão importados pelo `AppModule`. Usuários por Clínica já possui todas as camadas HTTP; os demais ainda são estruturais e registram apenas suas entidades no TypeORM.
 
 ### 11.1. Usuários por Clínica (`ClinicUsersModule`)
 
@@ -848,13 +1014,15 @@ Estrutura existente:
   - `OPHTHALMOLOGIST`;
   - `RECEPTIONIST`.
 
-Funcionalidades pendentes:
+Funcionalidades implementadas:
 
-- associar e desassociar usuários;
+- associar usuários;
 - listar usuários de uma clínica;
-- listar clínicas de um usuário;
+- listar clínicas do próprio usuário ou como administrador do sistema;
 - alterar papel;
-- aplicar autorização por papel.
+- ativar/desativar vínculos;
+- impedir duplicidade e proteger o último administrador ativo;
+- aplicar o guard e a matriz de papéis aos endpoints do módulo.
 
 ### 11.2. Profissionais (`ProfessionalsModule`)
 
@@ -869,12 +1037,28 @@ Estrutura existente:
 - especialidade com padrão “Oftalmologia”;
 - combinação CRM + UF única.
 
-Funcionalidades pendentes:
+Funcionalidades implementadas:
 
-- cadastro e atualização do perfil;
-- consultas por usuário ou CRM;
-- validação e normalização dos registros profissionais;
-- controle de acesso.
+- cadastro e atualização do perfil global por usuário;
+- consultas por identificador, usuário, CRM/UF e clínica;
+- normalização de CRM e RQE e validação das UFs brasileiras;
+- validação de clínica, usuário e vínculo `OPHTHALMOLOGIST` ativos;
+- unicidade por usuário e por CRM/UF;
+- leitura do diretório por administradores e recepção;
+- leitura limitada ao próprio perfil para oftalmologistas;
+- escrita restrita a administrador global ou `ADMIN` da clínica;
+- ausência de exclusão física.
+
+Rotas disponíveis:
+
+- `POST /clinics/:clinicId/professionals`;
+- `GET /clinics/:clinicId/professionals`;
+- `GET /clinics/:clinicId/professionals/:id`;
+- `GET /clinics/:clinicId/professionals/user/:userId`;
+- `GET /clinics/:clinicId/professionals/crm/:crm/:crmState`;
+- `PATCH /clinics/:clinicId/professionals/:id`.
+
+O contrato completo está em `docs/relatorio-professionals-2026-11-02.md`.
 
 ### 11.3. Pacientes (`PatientsModule`)
 
@@ -890,13 +1074,27 @@ Estrutura existente:
 - relações com agendamentos e atendimentos;
 - enum de sexo: `MALE`, `FEMALE` e `NOT_INFORMED`.
 
-Funcionalidades pendentes:
+Funcionalidades implementadas:
 
-- cadastro e atualização;
-- normalização e validação de CPF;
-- listagem, paginação e filtros;
-- ativação/desativação;
-- isolamento dos dados por clínica.
+- cadastro e atualização cadastral;
+- CPF opcional, normalizado, validado e único por clínica;
+- listagem paginada com busca por nome/CPF e filtro de status;
+- ativação e desativação lógica por rota própria;
+- isolamento por `clinicId` em todas as consultas;
+- leitura por `ADMIN`, `RECEPTIONIST` e `OPHTHALMOLOGIST`;
+- escrita por `ADMIN` e `RECEPTIONIST`, com status restrito a `ADMIN`;
+- bloqueio de administrador global sem vínculo clínico explícito;
+- método exportado para validação de paciente ativo pelo futuro módulo de agenda.
+
+Rotas disponíveis:
+
+- `POST /clinics/:clinicId/patients`;
+- `GET /clinics/:clinicId/patients`;
+- `GET /clinics/:clinicId/patients/:id`;
+- `PATCH /clinics/:clinicId/patients/:id`;
+- `PATCH /clinics/:clinicId/patients/:id/active`.
+
+O contrato completo está em `docs/relatorio-patients-2026-11-02.md`.
 
 ### 11.4. Agendamentos (`AppointmentsModule`)
 
@@ -1103,7 +1301,7 @@ Antes da produção ainda é necessário usar segredos fortes e distintos, execu
 
 ### Build
 
-**Resultado em 28/10/2026:** aprovado.
+**Resultado em 02/11/2026:** aprovado.
 
 ```text
 npm run build
@@ -1112,13 +1310,13 @@ npm run build
 
 ### Lint
 
-**Resultado em 28/10/2026:** aprovado sem erros ou avisos.
+**Resultado em 02/11/2026:** aprovado sem erros exibidos.
 
 ### Testes automatizados
 
-Não existem arquivos de testes automatizados no estado atual do projeto.
+Não existem arquivos permanentes de testes automatizados no estado final do projeto. Durante a execução de 2 de novembro de 2026, quatro suítes temporárias validaram 23 cenários com aprovação total; os arquivos foram removidos depois que os resultados foram registrados em `docs/relatorio-execucao-backend-2026-11-02.md`.
 
-### Validação funcional já realizada
+### Validação funcional registrada na auditoria anterior
 
 - aplicação inicializada com sucesso;
 - `AuthModule` carregado pelo NestJS;
@@ -1134,27 +1332,35 @@ Não foi executado login positivo com uma credencial real durante esta documenta
 
 ## 17. Próximas etapas recomendadas
 
-### Prioridade 1 — Autorização
+### Prioridade 1 — Fundação e bloqueadores
 
+- [x] corrigir a criação de clínica com e-mail ausente;
+- [x] impedir alteração de `active` pela atualização cadastral da clínica;
+- [x] definir o cadastro manual do primeiro administrador no PostgreSQL, sem endpoint ou automação;
+- [x] garantir a extensão de UUID por migration compatível;
+- [x] endurecer o `ValidationPipe` e validar UUIDs/filtros;
+- [ ] validar as migrations `up/down` em PostgreSQL descartável;
+- [ ] configurar uma infraestrutura permanente de testes;
 - aplicar `@ClinicRoles()` aos futuros endpoints de pacientes, agendamentos e atendimentos;
 - garantir que cada consulta de domínio filtre pelo `clinicId` autorizado;
 - criar uma matriz formal de permissões por papel;
 - adicionar testes E2E de acesso cruzado entre clínicas.
 
-### Prioridade 2 — Usuários por clínica
+### Prioridade 2 — Usuários por clínica (concluída)
 
-- criar DTOs, service e controller;
-- criar e desativar vínculos;
-- alterar papéis;
-- listar usuários por clínica;
-- listar clínicas por usuário.
+- [x] criar DTOs, service e controller;
+- [x] criar e desativar vínculos;
+- [x] alterar papéis;
+- [x] listar usuários por clínica;
+- [x] listar clínicas por usuário;
+- [x] impedir acesso cruzado e proteger o último administrador ativo.
 
 ### Prioridade 3 — Cadastros do domínio
 
-- implementar Profissionais;
-- implementar Pacientes;
-- adicionar paginação e filtros;
-- criar validação de CPF e registros profissionais.
+- [x] implementar Profissionais;
+- [x] implementar Pacientes;
+- [x] adicionar paginação e filtros de pacientes;
+- [x] criar validação de CPF e registros profissionais.
 
 ### Prioridade 4 — Operação clínica
 
@@ -1166,7 +1372,7 @@ Não foi executado login positivo com uma credencial real durante esta documenta
 
 ### Prioridade 5 — Qualidade e produção
 
-- configurar `ValidationPipe` com `whitelist` e `forbidNonWhitelisted`;
+- manter e ampliar a cobertura do `ValidationPipe` já configurado;
 - ampliar testes unitários e criar testes E2E;
 - adicionar Swagger/OpenAPI;
 - definir CORS e versionamento;
@@ -1231,7 +1437,7 @@ Esta documentação pode ser mantida em uma página principal com as seguintes s
 | Camadas prontas | Multi-seleção | DTO, Service, Controller, Guard |
 | Prioridade | Seleção | Crítica / Alta / Média / Baixa |
 | Responsável | Pessoa | Responsável técnico |
-| Última validação | Data | 28/10/2026 |
+| Última validação | Data | 02/11/2026 |
 | Build | Seleção | Aprovado / Reprovado |
 | Testes | Texto | Pendente |
 | Próxima entrega | Texto | Isolamento dos módulos clínicos |
@@ -1259,6 +1465,6 @@ Esta documentação pode ser mantida em uma página principal com as seguintes s
 
 ## 20. Conclusão
 
-O repositório possui uma base consistente de aplicação, persistência, autenticação e autorização. Clínicas e Usuários são os módulos de negócio disponíveis por HTTP. A autenticação JWT protege globalmente as rotas, mantém sessões persistidas, rotaciona refresh tokens e permite revogação imediata no servidor.
+O repositório possui uma base consistente de aplicação, persistência, autenticação e autorização. Clínicas, Usuários, Usuários por Clínica, Profissionais e Pacientes são os módulos de negócio disponíveis por HTTP. A autenticação JWT protege globalmente as rotas, mantém sessões persistidas, rotaciona refresh tokens e permite revogação imediata no servidor.
 
-As entidades restantes representam corretamente o domínio planejado, mas ainda precisam das camadas de aplicação. A próxima evolução mais importante é aplicar o guard já existente e filtros obrigatórios por clínica nos módulos de Pacientes, Profissionais, Agendamentos e Atendimentos, além de ampliar a validação com testes E2E.
+Profissionais e Pacientes agora fornecem as validações de participantes necessárias para a agenda. A próxima evolução mais importante é implementar Agendamentos com escopo por clínica, conflitos de horário e transições explícitas de status.
