@@ -28,40 +28,40 @@ export class Patient extends BaseEntity {
   name: string;
 
   @Column({ type: "varchar", length: 11, nullable: true })
-  cpf: string;
+  cpf: string | null;
 
   @Column({ name: "birth_date", type: "date" })
   birthDate: string;
 
   @Column({ type: "enum", enum: PatientSex, nullable: true })
-  sex: PatientSex;
+  sex: PatientSex | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  phone: string;
+  phone: string | null;
 
   @Column({ type: "varchar", length: 150, nullable: true })
-  email: string;
+  email: string | null;
 
   @Column({ name: "zip_code", type: "varchar", length: 8, nullable: true })
-  zipCode: string;
+  zipCode: string | null;
 
   @Column({ type: "varchar", length: 150, nullable: true })
-  street: string;
+  street: string | null;
 
   @Column({ type: "varchar", length: 20, nullable: true })
-  number: string;
+  number: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  complement: string;
+  complement: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  neighborhood: string;
+  neighborhood: string | null;
 
   @Column({ type: "varchar", length: 100, nullable: true })
-  city: string;
+  city: string | null;
 
   @Column({ type: "char", length: 2, nullable: true })
-  state: string;
+  state: string | null;
 
   @Column({ type: "boolean", default: true })
   active: boolean;
