@@ -35,6 +35,9 @@ export class Appointment extends BaseEntity {
   @Column({ name: "scheduled_at", type: "timestamptz" })
   scheduledAt: Date;
 
+  @Column({ name: "ends_at", type: "timestamptz" })
+  endsAt: Date;
+
   @Column({ name: "duration_minutes", type: "smallint", default: 30 })
   durationMinutes: number;
 
@@ -42,10 +45,16 @@ export class Appointment extends BaseEntity {
   status: AppointmentStatus;
 
   @Column({ type: "text", nullable: true })
-  reason: string;
+  reason: string | null;
 
   @Column({ type: "text", nullable: true })
-  notes: string;
+  notes: string | null;
+
+  @Column({ name: "cancellation_reason", type: "text", nullable: true })
+  cancellationReason: string | null;
+
+  @Column({ name: "cancelled_at", type: "timestamptz", nullable: true })
+  cancelledAt: Date | null;
 
   @ManyToOne(() => Clinic, (clinic) => clinic.appointments)
   @JoinColumn({ name: "clinic_id" })

@@ -82,6 +82,24 @@ export class ProfessionalsService {
     return profiles.map((profile) => this.toResponse(profile));
   }
 
+  async findActiveForClinic(
+    clinicId: string,
+    professionalId: string,
+  ): Promise<ProfessionalProfile> {
+    await this.validateActiveClinic(clinicId);
+    const profile = await this.authorizedProfilesQuery(clinicId)
+      .andWhere("professional.id = :professionalId", { professionalId })
+      .getOne();
+
+    if (!profile) {
+      throw new NotFoundException(
+        "Profissional ativo não encontrado na clínica informada.",
+      );
+    }
+
+    return profile;
+  }
+
   async findById(clinicId: string, id: string, currentUser: AuthenticatedUser) {
     await this.validateActiveClinic(clinicId);
     const query = this.authorizedProfilesQuery(clinicId);
