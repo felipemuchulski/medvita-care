@@ -1,7 +1,9 @@
 
-import { Menu } from 'lucide-react'
-import { useLocation } from 'react-router'
+import { KeyRound, LogOut, Menu } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router'
 import { navigationItems } from '../../app/navigation'
+import { useAuth } from '../../hooks/use-auth'
 
 interface HeaderProps {
   onOpenMenu: () => void
@@ -11,6 +13,8 @@ export default function Header({
   onOpenMenu,
 }: HeaderProps) {
   const location = useLocation()
+  const { logout, user } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const currentPage = navigationItems.find(
     (item) => item.path === location.pathname
@@ -34,9 +38,34 @@ export default function Header({
         </h2>
       </div>
 
-      <span className="rounded-full bg-primary-light px-3 py-1 text-xs font-medium text-primary-dark">
-        MVP
-      </span>
+      <div className="flex items-center gap-1 sm:gap-2">
+        <span className="hidden max-w-48 truncate text-sm text-text-secondary xl:inline">
+          {user?.name}
+        </span>
+
+        <Link
+          to="/alterar-senha"
+          aria-label="Alterar senha"
+          title="Alterar senha"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition hover:bg-primary-light hover:text-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <KeyRound size={19} />
+        </Link>
+
+        <button
+          type="button"
+          disabled={isLoggingOut}
+          aria-label="Sair da sessão"
+          title="Sair"
+          onClick={async () => {
+            setIsLoggingOut(true)
+            await logout()
+          }}
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-60"
+        >
+          <LogOut size={19} />
+        </button>
+      </div>
     </header>
   )
 }
