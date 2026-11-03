@@ -44,10 +44,59 @@ export class Encounter extends BaseEntity {
   startedAt: Date;
 
   @Column({ name: "finished_at", type: "timestamptz", nullable: true })
-  finishedAt: Date;
+  finishedAt: Date | null;
 
   @Column({ name: "clinical_notes", type: "text", nullable: true })
-  clinicalNotes: string;
+  clinicalNotes: string | null;
+
+  @Column({ name: "chief_complaint", type: "text", nullable: true })
+  chiefComplaint: string | null;
+
+  @Column({ type: "text", nullable: true })
+  anamnesis: string | null;
+
+  @Column({
+    name: "visual_acuity_right",
+    type: "varchar",
+    length: 50,
+    nullable: true,
+  })
+  visualAcuityRight: string | null;
+
+  @Column({
+    name: "visual_acuity_left",
+    type: "varchar",
+    length: 50,
+    nullable: true,
+  })
+  visualAcuityLeft: string | null;
+
+  @Column({
+    name: "intraocular_pressure_right",
+    type: "numeric",
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
+  intraocularPressureRight: number | null;
+
+  @Column({
+    name: "intraocular_pressure_left",
+    type: "numeric",
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
+  intraocularPressureLeft: number | null;
+
+  @Column({ name: "clinical_assessment", type: "text", nullable: true })
+  clinicalAssessment: string | null;
+
+  @Column({ type: "text", nullable: true })
+  plan: string | null;
+
+  @Column({ name: "cancellation_reason", type: "text", nullable: true })
+  cancellationReason: string | null;
 
   @ManyToOne(() => Clinic, (clinic) => clinic.encounters)
   @JoinColumn({ name: "clinic_id" })
