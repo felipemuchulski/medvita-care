@@ -34,10 +34,10 @@ export default function PatientDetailsPage() {
   const address = [patient.street, patient.number, patient.complement].filter(Boolean).join(', ')
   const locationLine = [patient.neighborhood, patient.city, patient.state].filter(Boolean).join(' · ')
 
-  async function toggleStatus(): Promise<void> {
+  function toggleStatus(): void {
     const action = patient.active ? 'desativar' : 'ativar'
     if (!window.confirm(`Deseja realmente ${action} o paciente ${patient.name}?`)) return
-    await statusMutation.mutateAsync(!patient.active)
+    statusMutation.mutate(!patient.active)
   }
 
   return (
@@ -48,7 +48,7 @@ export default function PatientDetailsPage() {
         <div className="min-w-0"><div className="flex flex-wrap items-center gap-3"><h1 className="break-words text-2xl font-bold">{patient.name}</h1><PatientStatusBadge active={patient.active} /></div><p className="mt-2 text-sm text-text-secondary">CPF: {formatCpf(patient.cpf)}</p></div>
         <div className="flex flex-col gap-2 sm:flex-row">
           {canWritePatients(activeRole) && <Link to={`/pacientes/${patient.id}/editar`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary"><Pencil size={17} /> Editar</Link>}
-          {canChangePatientStatus(activeRole) && <button type="button" onClick={() => void toggleStatus()} disabled={statusMutation.isPending} className={`min-h-11 rounded-lg px-4 py-2 text-sm font-semibold ${patient.active ? 'border border-red-300 text-red-700 hover:bg-red-50' : 'bg-emerald-700 text-white hover:bg-emerald-800'} disabled:opacity-60`}>{statusMutation.isPending ? 'Salvando...' : patient.active ? 'Desativar' : 'Ativar'}</button>}
+          {canChangePatientStatus(activeRole) && <button type="button" onClick={toggleStatus} disabled={statusMutation.isPending} className={`min-h-11 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${patient.active ? 'border border-red-300 text-red-700 hover:bg-red-50' : 'bg-emerald-700 text-white hover:bg-emerald-800'} disabled:opacity-60`}>{statusMutation.isPending ? 'Salvando...' : patient.active ? 'Desativar' : 'Ativar'}</button>}
         </div>
       </div>
 

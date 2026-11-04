@@ -22,5 +22,5 @@ function CreatePatientContent({ clinicId, onCreated }: { clinicId: string; onCre
     const patient = await mutation.mutateAsync(payload)
     onCreated(patient.id)
   }
-  return <div className="mx-auto max-w-4xl space-y-6"><div><h1 className="text-2xl font-bold">Novo paciente</h1><p className="mt-1 text-sm text-text-secondary">Preencha os dados cadastrais disponíveis.</p></div><PatientForm submitLabel="Cadastrar paciente" onSubmit={create} /></div>
+  return <div className="mx-auto max-w-4xl space-y-6"><div><h1 className="text-2xl font-bold">Novo paciente</h1><p className="mt-1 text-sm text-text-secondary">Preencha os dados cadastrais disponíveis.</p></div><PatientForm submitLabel="Cadastrar paciente" cancelTo="/pacientes" onSubmit={create} /></div>
 }

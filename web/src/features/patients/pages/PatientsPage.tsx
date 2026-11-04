@@ -2,6 +2,7 @@ import { Search, UserPlus, UsersRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { isApiError } from '../../../api/api-error'
+import type { ClinicRole } from '../../auth/types/auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import PatientStatusBadge from '../components/PatientStatusBadge'
 import PatientsUnavailable from '../components/PatientsUnavailable'
@@ -15,6 +16,15 @@ interface LocationState {
 
 export default function PatientsPage() {
   const { activeClinicId, activeRole } = useClinic()
+
+  if (!activeClinicId || !activeRole || !canReadPatients(activeRole)) {
+    return <PatientsUnavailable />
+  }
+
+  return <PatientsContent key={activeClinicId} clinicId={activeClinicId} activeRole={activeRole} />
+}
+
+function PatientsContent({ clinicId, activeRole }: { clinicId: string; activeRole: ClinicRole }) {
   const location = useLocation()
   const [draftSearch, setDraftSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -26,10 +36,8 @@ export default function PatientsPage() {
     search: search || undefined,
     active: activeFilter === 'all' ? undefined : activeFilter === 'active',
   }
-  const patientsQuery = usePatients(activeClinicId, query)
+  const patientsQuery = usePatients(clinicId, query)
   const canWrite = canWritePatients(activeRole)
-
-  if (!activeClinicId || !canReadPatients(activeRole)) return <PatientsUnavailable />
 
   function applySearch(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()

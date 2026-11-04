@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Patient, PatientPayload, PatientSex } from '../types/patient'
+import { maskCpf } from './patient-format'
 
 function isValidCpf(value: string): boolean {
   const cpf = value.replace(/\D/g, '')
@@ -75,7 +76,7 @@ export type PatientFormValues = z.infer<typeof patientSchema>
 export function patientToFormValues(patient?: Patient): PatientFormValues {
   return {
     name: patient?.name ?? '',
-    cpf: patient?.cpf ?? '',
+    cpf: maskCpf(patient?.cpf ?? ''),
     birthDate: patient?.birthDate ?? '',
     sex: patient?.sex ?? '',
     phone: patient?.phone ?? '',

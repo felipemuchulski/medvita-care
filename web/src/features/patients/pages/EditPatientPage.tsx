@@ -24,5 +24,5 @@ export default function EditPatientPage() {
 function EditPatientContent({ clinicId, patientId, patient, onUpdated }: { clinicId: string; patientId: string; patient: NonNullable<ReturnType<typeof usePatient>['data']>; onUpdated: () => void }) {
   const mutation = useUpdatePatient(clinicId, patientId)
   async function update(payload: PatientPayload): Promise<void> { await mutation.mutateAsync(payload); onUpdated() }
-  return <div className="mx-auto max-w-4xl space-y-6"><div><h1 className="text-2xl font-bold">Editar paciente</h1><p className="mt-1 text-sm text-text-secondary">Atualize somente os dados que foram confirmados.</p></div><PatientForm patient={patient} submitLabel="Salvar alterações" onSubmit={update} /></div>
+  return <div className="mx-auto max-w-4xl space-y-6"><div><h1 className="text-2xl font-bold">Editar paciente</h1><p className="mt-1 text-sm text-text-secondary">Atualize somente os dados que foram confirmados.</p></div><PatientForm patient={patient} submitLabel="Salvar alterações" cancelTo={`/pacientes/${patientId}`} onSubmit={update} /></div>
 }
