@@ -11,20 +11,32 @@ import { EncountersModule } from "./encounters/encounters.module";
 import { AuthModule } from "./auth/auth.module";
 import { validateEnvironment } from "./config/env.validation";
 import { AuditModule } from "./audit/audit.module";
+import { join } from "path";
+import { connectionOptions } from "./database/connection-options";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: join(__dirname, "../.env"),
+      validate: validateEnvironment,
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: "postgres",
-        host: config.get<string>("DB_HOST", "localhost"),
-        port: config.get<number>("DB_PORT", 5432),
-        username: config.get<string>("DB_USERNAME", "postgres"),
-        password: config.get<string>("DB_PASSWORD", ""),
-        database: config.get<string>("DB_NAME", "medvita"),
+        ...connectionOptions(
+          Object.fromEntries(
+            [
+              "DATABASE_URL",
+              "DB_HOST",
+              "DB_PORT",
+              "DB_USERNAME",
+              "DB_PASSWORD",
+              "DB_NAME",
+            ].map((key) => [key, config.get(key)]),
+          ),
+        ),
         autoLoadEntities: true,
         synchronize: false,
       }),

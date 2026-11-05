@@ -1,3 +1,5 @@
+import { connectionOptions } from "../database/connection-options";
+
 type Environment = Record<string, unknown>;
 
 const requiredVariables = [
@@ -29,11 +31,14 @@ function validatePositiveInteger(
 
 export function validateEnvironment(environment: Environment): Environment {
   for (const key of requiredVariables) {
+    if (key.startsWith("DB_") && environment.DATABASE_URL) continue;
     const value = environment[key];
     if (typeof value !== "string" || !value.trim()) {
       throw new Error(`${key} deve ser informado.`);
     }
   }
+
+  connectionOptions(environment);
 
   const nodeEnv = (
     typeof environment.NODE_ENV === "string"
