@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
   Relation,
 } from "typeorm";
-import { User } from "src/users/entities/user.entity";
+import { User } from "../../users/entities/user.entity";
 
 @Entity({ name: "auth_sessions" })
 export class AuthSession {
