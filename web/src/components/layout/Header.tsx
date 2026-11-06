@@ -12,9 +12,10 @@ interface HeaderProps {
 export default function Header({
   onOpenMenu,
 }: HeaderProps) {
-  const location = useLocation()
-  const { logout, user } = useAuth()
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const location = useLocation();
+  const { logout, user } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUserCardOpen, setIsUserCardOpen] = useState(false);
 
   const currentPage = navigationItems.find(
     (item) =>
@@ -41,18 +42,56 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
-        <span className="hidden max-w-48 truncate text-sm text-text-secondary xl:inline">
-          {user?.name}
-        </span>
-
-        <Link
-          to="/alterar-senha"
-          aria-label="Alterar senha"
-          title="Alterar senha"
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition hover:bg-primary-light hover:text-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        <div
+          className='relative'
+          onMouseEnter={() => setIsUserCardOpen(true)}
+          onMouseLeave={() => setIsUserCardOpen(false)}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setIsUserCardOpen(false)
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setIsUserCardOpen(false);
+            }
+          }}
         >
-          <KeyRound size={19} />
-        </Link>
+
+          <button
+            type='button'
+            aria-expanded={isUserCardOpen}
+            aria-controls='user-card'
+            onClick={() => setIsUserCardOpen(true)}
+            className='rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-primary-light'
+          > Olá!, {user?.name}</button>
+
+         {isUserCardOpen && (
+          <div
+            id="user-card"
+            className='absolute right-0 top-full z-50 w-72 pt-2'
+          > 
+            <div className='rounded-xl border border-border bg-white p-4 shadow-lg'>
+              <p className='wrap-break-words font-semibold text-text-primary'>
+                {user?.name}
+              </p>
+
+              <p className='mt-1 wrap-break-words text-sm text-text-secondary'>
+                {user?.email}
+              </p>
+
+              <Link
+                to="/alterar-senha"
+                onClick={() => setIsUserCardOpen(false)}
+                className='mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary hover:bg-primary-light'> 
+                
+                <KeyRound size={18} />
+                Alterar senha de usuário
+                </Link>
+            </div>
+          </div>
+         )}
+        </div>
 
         <button
           type="button"
