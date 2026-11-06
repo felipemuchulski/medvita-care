@@ -168,7 +168,7 @@ export class AppointmentsService {
     }
 
     const [data, total] = await builder
-      .orderBy("appointment.scheduled_at", "ASC")
+      .orderBy("appointment.scheduledAt", "ASC")
       .addOrderBy("appointment.id", "ASC")
       .skip((page - 1) * limit)
       .take(limit)
