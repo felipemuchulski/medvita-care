@@ -235,3 +235,58 @@ Etapa 3: carregar `GET /users/:userId/clinics`, selecionar somente vínculos ati
 ### Próxima etapa recomendada
 
 Homologar o fluxo de pacientes contra a API e PostgreSQL reais. Depois disso, avançar para profissionais ou agenda sem alterar o módulo de pacientes já validado estaticamente.
+
+## 2026-11-06 — Módulo de agendamentos
+
+### Implementação e arquivos
+
+- Nova feature em `src/features/appointments/`: tipos de Appointment, API, hooks de consulta/mutação, regras de permissão, conversão de datas e testes.
+- Componentes `AppointmentForm`, `AppointmentStatusBadge`, `PatientSelector`, `ProfessionalSelector` e `CancelAppointmentDialog`.
+- `pages/AppointmentsPage.tsx` reúne listagem, cadastro, detalhes e reagendamento, com rotas registradas em `src/App.tsx`.
+- Listagem com paginação real, filtros por paciente, profissional, status e intervalo inclusivo de datas. Busca de pacientes por nome/CPF com submissão explícita e páginas de dez registros; nenhuma busca textual inventada para agendamentos.
+- Cards como visualização base, tabela a partir de 1024px, campos em uma coluna e expansão progressiva. Controles com altura mínima de 44px, tabela de colunas fixas, textos longos quebráveis, diálogo nativo com foco, Escape, restauração do foco e rolagem vertical.
+- Cadastro com paciente ativo, profissional autorizado, data futura com offset explícito, duração inteira de 5–480 minutos, motivo até 500 e observações até 1000 caracteres.
+- Cancelamento exige motivo de 3–500 caracteres, confirmação e proteção contra envio duplicado. Reagendamento só altera data/horário e duração. Ambos bloqueados para status diferentes de SCHEDULED/CONFIRMED e atendimento vinculado.
+- Feedback de sucesso, erros de autorização, conflitos HTTP 409, rede, carregamento, listas vazias e repetição de consultas.
+
+### Endpoints integrados
+
+Prefixo `/clinics/:clinicId`:
+- `GET /appointments` e `GET /appointments/:id`.
+- `POST /appointments`.
+- `PATCH /appointments/:id/reschedule` e `PATCH /appointments/:id/cancel`.
+- `GET /patients` (busca e paginação) e `GET /professionals` (lista real).
+
+### Permissões, cache e isolamento
+
+- ADMIN e RECEPTIONIST gerenciam; OPHTHALMOLOGIST consulta conforme escopo imposto pelo servidor. isSystemAdmin não concede acesso automático.
+- Entrada exige clínica ativa e papel; chaves de consultas contêm clínica; não se reutilizam dados anteriores entre clínicas como placeholder. Tela e formulários remontam na troca de clínica/papel. Respostas de agendamentos são verificadas contra a clínica ativa.
+- Reutiliza limpeza do cache existente na troca de clínica e logout. Dados somente em memória, sem persistência ou logs de informações pessoais.
+- Alterações invalidam listagem e detalhes. Hooks e API disponíveis para futura integração de calendário; `/calendario` permanece módulo separado provisório.
+
+### Datas e divergências do back-end (somente leitura)
+
+- API usa timestamptz e exige ISO 8601 com offset ou Z; conflitos consideram sobreposição de horários do profissional inclusive entre clínicas, sem revelar dados externos.
+- Não foi encontrada configuração de timezone clínico. A interface adota explicitamente UTC−03:00 nas listagens e detalhes, e permite escolher offset no formulário (UTC−05, −04, −03, −02 ou UTC). Não usa timezone implícito do navegador.
+- Essa é uma convenção operacional do front-end, não um timezone cadastrado da clínica. Offsets fixos não modelam horário de verão. Confirmar o offset na operação; evolução recomendada: timezone IANA por clínica, retornado pela API.
+- Profissionais não possui busca/paginação no contrato; uma consulta cacheada retorna a lista autorizada completa. Não foi inventada paginação no servidor. Para clínicas com muitos profissionais, adicionar contrato paginado no futuro.
+- A API é a autoridade final sobre conflitos e transições; disponibilidade não é presumida no cliente. Endpoint de disponibilidade analisado, mas não necessário para salvar.
+
+### Verificação e limitações
+
+- `npm run lint`: aprovado.
+- `npm run build`: aprovado, incluindo TypeScript (`tsc -b`).
+- `npm test`: 9 arquivos, 28 testes aprovados. Novos testes cobrem contratos de listagem/filtros, criação, reagendamento, cancelamento, chaves isoladas, permissões, transições, mensagens de conflito e conversão de datas com mudança de dia.
+- Não existem navegador conectado, Playwright ou Puppeteer disponíveis nesta execução. As regras responsivas foram revisadas em código; NÃO houve validação visual em 320, 375, 390, 768, 1024 ou 1440px, nem zoom 200% ou navegação por teclado em navegador. Essas validações seguem pendentes para homologação.
+- Não houve teste ponta a ponta contra API/PostgreSQL reais: faltam sessão/credenciais de homologação. Testes HTTP usam spies, não comprovam persistência real. Carregamento/erros de UI, troca de clínica durante requisições e fluxo de formulários requerem testes de navegador.
+- Backend permaneceu sem alterações desta tarefa. Alterações locais prévias em ambos package-lock.json e `RELATORIO_FRONTEND.md` preservadas.
+
+### Próximos passos
+
+Homologar os fluxos com API real e testes de navegador nas seis larguras, zoom e teclado; depois integrar o calendário usando a mesma feature. Evoluir contrato de timezone e paginação de profissionais em tarefa própria de backend.
+
+## 2026-11-06 — Remoção dos arquivos de testes
+
+- A pedido do usuário, removidos os nove arquivos `*.test.ts` do repositório, incluindo os testes de agendamentos.
+- Resultados de testes registrados acima são históricos, anteriores à remoção.
+- Código da aplicação, dependências e configuração das ferramentas de testes preservados.
