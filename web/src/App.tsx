@@ -6,6 +6,7 @@ import PublicOnlyRoute from './features/auth/routes/PublicOnlyRoute'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
+import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
 import PatientsPage from './features/patients/pages/PatientsPage'
 import CreatePatientPage from './features/patients/pages/CreatePatientPage'
 import EditPatientPage from './features/patients/pages/EditPatientPage'
@@ -25,7 +26,10 @@ export default function App() {
           <Route path="/pacientes/novo" element={<CreatePatientPage />} />
           <Route path="/pacientes/:patientId" element={<PatientDetailsPage />} />
           <Route path="/pacientes/:patientId/editar" element={<EditPatientPage />} />
-          <Route path="/agendamentos" element={<ModulePage title="Agendamentos" />} />
+          <Route path="/agendamentos" element={<AppointmentsPage />} />
+          <Route path="/agendamentos/novo" element={<AppointmentsPage />} />
+          <Route path="/agendamentos/:appointmentId" element={<AppointmentsPage />} />
+          <Route path="/agendamentos/:appointmentId/reagendar" element={<AppointmentsPage />} />
           <Route path="/calendario" element={<ModulePage title="Calendário" />} />
           <Route path="/profissionais" element={<ModulePage title="Profissionais" />} />
           <Route path="/prontuarios" element={<ModulePage title="Prontuários" />} />
