@@ -1,26 +1,21 @@
-
-import { Eye, X } from 'lucide-react'
-import { NavLink } from 'react-router'
-import { navigationItems } from '../../app/navigation'
-import { useClinic } from '../../hooks/use-clinic'
+import { Eye, X } from "lucide-react";
+import { NavLink } from "react-router";
+import { navigationItems } from "../../app/navigation";
+import { useClinic } from "../../hooks/use-clinic";
 
 interface SidebarProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function Sidebar({
-  isOpen,
-  onClose,
-}: SidebarProps) {
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const {
     memberships,
     activeClinicId,
-    activeRole,
     isLoading,
     error,
     selectClinic,
-  } = useClinic()
+  } = useClinic();
 
   return (
     <>
@@ -42,7 +37,7 @@ export default function Sidebar({
           shadow-xl transition-transform duration-200
           lg:sticky lg:top-0 lg:h-screen
           lg:translate-x-0 lg:shadow-none
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         <div className="flex items-center justify-between px-5 py-6">
@@ -52,12 +47,8 @@ export default function Sidebar({
             </div>
 
             <div>
-              <h1 className="text-lg font-bold">
-                Medvita Care
-              </h1>
-              <p className="text-xs text-blue-200">
-                Gestão clínica
-              </p>
+              <h1 className="text-lg font-bold">Medvita Care</h1>
+              <p className="text-xs text-blue-200">Gestão clínica</p>
             </div>
           </div>
 
@@ -72,32 +63,53 @@ export default function Sidebar({
         </div>
 
         <div className="border-y border-white/10 px-4 py-4">
-          <label htmlFor="active-clinic" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-300">
+          <label
+            htmlFor="active-clinic"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-300"
+          >
             Clínica ativa
           </label>
           {isLoading ? (
-            <p className="text-sm text-blue-100" role="status">Carregando clínicas...</p>
+            <p className="text-sm text-blue-100" role="status">
+              Carregando clínicas...
+            </p>
           ) : memberships.length > 0 ? (
             <>
-              <select
-                id="active-clinic"
-                value={activeClinicId ?? ''}
-                onChange={(event) => selectClinic(event.target.value)}
-                className="min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none focus:border-white focus:ring-2 focus:ring-white/30"
-              >
-                {memberships.length > 1 && <option value="" disabled className="text-slate-900">Selecione uma clínica</option>}
-                {memberships.map((membership) => (
-                  <option key={membership.clinicId} value={membership.clinicId} className="text-slate-900">
-                    {membership.clinic?.name ?? membership.clinicId}
+              {memberships.length === 1 ? (
+                <p className="flex min-h-11 items-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                  {memberships[0].clinic?.name ?? memberships[0].clinicId}
+                </p>
+              ) : (
+                <select
+                  id="active-clinic"
+                  value={activeClinicId ?? ""}
+                  onChange={(event) => selectClinic(event.target.value)}
+                  className="min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none  focus:border-white focus:ring-2 focus:ring-white/30"
+                >
+                  <option value="" disabled className="text-slate-900">
+                    Selecione uma clínica
                   </option>
-                ))}
-              </select>
-              {activeRole && <p className="mt-2 text-xs text-blue-200">Perfil: {activeRole}</p>}
+
+                  {memberships.map((membership) => (
+                    <option
+                      key={membership.clinicId}
+                      value={membership.clinicId}
+                      className="text-slate-900"
+                    >
+                      {membership.clinic?.name ?? membership.clinicId}
+                    </option>
+                  ))}
+                </select>
+              )}
             </>
           ) : (
             <p className="text-sm text-blue-100">Nenhuma clínica autorizada.</p>
           )}
-          {error && <p role="alert" className="mt-2 text-xs text-red-200">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-2 text-xs text-red-200">
+              {error}
+            </p>
+          )}
         </div>
 
         <nav
@@ -110,13 +122,13 @@ export default function Sidebar({
 
           <div className="space-y-1">
             {navigationItems.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
 
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/'}
+                  end={item.path === "/"}
                   onClick={onClose}
                   className={({ isActive }) => `
                     flex items-center gap-3 rounded-lg
@@ -124,25 +136,23 @@ export default function Sidebar({
                     transition-colors
                     ${
                       isActive
-                        ? 'bg-white/15 text-white'
-                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        ? "bg-white/15 text-white"
+                        : "text-blue-100 hover:bg-white/10 hover:text-white"
                     }
                   `}
                 >
                   <Icon size={19} />
                   <span>{item.label}</span>
                 </NavLink>
-              )
+              );
             })}
           </div>
         </nav>
 
         <div className="border-t border-white/10 px-5 py-4">
-          <p className="text-xs text-blue-200">
-            Medvita Care • MVP
-          </p>
+          <p className="text-xs text-blue-200">Medvita Care • MVP</p>
         </div>
       </aside>
     </>
-  )
+  );
 }
