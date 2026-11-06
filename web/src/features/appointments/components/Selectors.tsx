@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { patientsApi } from "../../patients/api/patients-api";
 import { appointmentsApi } from "../api/appointments-api";
+
 export const inputClass =
-  "min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base";
+  "h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base";
 export const buttonClass =
   "inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-primary px-4 py-2 text-primary font-medium disabled:opacity-50";
+export const compactButtonClass =
+  "inline-flex h-[30px] min-w-[30px] shrink-0 items-center justify-center self-center rounded-lg border border-primary px-3 py-0 text-sm font-medium text-primary disabled:opacity-50";
+
 export function PatientSelector({
   clinic,
   value,
@@ -17,6 +21,8 @@ export function PatientSelector({
   onChange: (id: string) => void;
   activeOnly?: boolean;
 }) {
+  const patientId = useId();
+  const searchId = useId();
   const [selectedLabel, setSelectedLabel] = useState("");
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
@@ -32,10 +38,13 @@ export function PatientSelector({
       }),
   });
   return (
-    <fieldset className="min-w-0 space-y-2">
-      <legend className="font-medium">Paciente</legend>
+    <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
+      <label htmlFor={searchId} className="block font-medium">
+        Buscar paciente
+      </label>
       <div className="flex gap-2">
         <input
+          id={searchId}
           aria-label="Pesquisar paciente por nome ou CPF"
           className={inputClass}
           value={draft}
@@ -44,7 +53,7 @@ export function PatientSelector({
         />
         <button
           type="button"
-          className={buttonClass}
+          className={compactButtonClass}
           onClick={() => {
             setSearch(draft.trim());
             setPage(1);
@@ -53,7 +62,11 @@ export function PatientSelector({
           Buscar
         </button>
       </div>
+      <label htmlFor={patientId} className="block font-medium">
+        Paciente
+      </label>
       <select
+        id={patientId}
         aria-label="Paciente"
         className={inputClass}
         value={value}
@@ -76,51 +89,57 @@ export function PatientSelector({
           </option>
         ))}
       </select>
-      {query.isError && (
-        <p role="alert">
-          Falha ao buscar pacientes.{" "}
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={() => void query.refetch()}
-          >
-            Tentar novamente
-          </button>
-        </p>
-      )}
-      {query.data?.data.length === 0 && <p>Nenhum paciente encontrado.</p>}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className={buttonClass}
-          disabled={page === 1 || query.isFetching}
-          onClick={() => setPage((p) => p - 1)}
-        >
-          Anterior
-        </button>
-        <button
-          type="button"
-          className={buttonClass}
-          disabled={
-            !query.data ||
-            page >= query.data.meta.totalPages ||
-            query.isFetching
-          }
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Próxima
-        </button>
-        {value && (
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={() => onChange("")}
-          >
-            Limpar
-          </button>
+      <div className="space-y-2">
+        {query.isError && (
+          <p role="alert">
+            Falha ao buscar pacientes.{" "}
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={() => void query.refetch()}
+            >
+              Tentar novamente
+            </button>
+          </p>
         )}
+        {query.data?.data.length === 0 && <p>Nenhum paciente encontrado.</p>}
+        <div className="flex flex-wrap gap-2">
+          {query.data && query.data.meta.totalPages > 1 && (
+            <>
+          <button
+            type="button"
+            className={compactButtonClass}
+            disabled={page === 1 || query.isFetching}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            className={compactButtonClass}
+            disabled={
+              !query.data ||
+              page >= query.data.meta.totalPages ||
+              query.isFetching
+            }
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Próxima
+          </button>
+            </>
+          )}
+          {value && (
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={() => onChange("")}
+            >
+              Limpar
+            </button>
+          )}
+        </div>
       </div>
-    </fieldset>
+    </div>
   );
 }
 export function ProfessionalSelector({
@@ -132,14 +151,18 @@ export function ProfessionalSelector({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const professionalId = useId();
   const query = useQuery({
     queryKey: ["appointment-professionals", clinic],
     queryFn: ({ signal }) => appointmentsApi.professionals(clinic, signal),
   });
   return (
-    <label className="block min-w-0 space-y-2">
-      <span className="font-medium">Profissional</span>
+    <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
+      <label htmlFor={professionalId} className="block font-medium">
+        Profissional
+      </label>
       <select
+        id={professionalId}
         className={inputClass}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -168,6 +191,6 @@ export function ProfessionalSelector({
       {query.data?.length === 0 && (
         <span>Nenhum profissional ativo nesta clínica.</span>
       )}
-    </label>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { AppointmentStatusBadge } from "../components/AppointmentStatusBadge";
 import { AppointmentForm } from "../components/AppointmentForm";
 import {
   buttonClass,
+  compactButtonClass,
   inputClass,
   PatientSelector,
   ProfessionalSelector,
@@ -409,7 +410,7 @@ function AppointmentList({
           </div>
         </>
       )}
-      {query.data && (
+      {query.data && query.data.meta.totalPages > 1 && (
         <nav
           aria-label="Paginação de agendamentos"
           className="flex flex-wrap items-center justify-between gap-3"
@@ -420,14 +421,16 @@ function AppointmentList({
           </p>
           <div className="flex gap-2">
             <button
-              className={buttonClass}
+              type="button"
+              className={compactButtonClass}
               disabled={filters.page === 1 || query.isFetching}
               onClick={() => setFilters((f) => ({ ...f, page: f.page! - 1 }))}
             >
               Anterior
             </button>
             <button
-              className={buttonClass}
+              type="button"
+              className={compactButtonClass}
               disabled={
                 filters.page! >= query.data.meta.totalPages || query.isFetching
               }
