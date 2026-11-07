@@ -1,7 +1,7 @@
 import type { AppointmentStatus } from "../types/appointment";
 import { statusLabels } from "../lib/appointment";
 const colors = {
-  SCHEDULED: "bg-blue-50 text-blue-800",
+  SCHEDULED: "bg-primary-light text-primary",
   CONFIRMED: "bg-green-50 text-green-800",
   IN_PROGRESS: "bg-amber-50 text-amber-900",
   COMPLETED: "bg-slate-100 text-slate-800",

@@ -6,7 +6,7 @@ import type {
 } from "../../appointments/types/appointment";
 
 export const eventColors: Record<AppointmentStatus, string> = {
-  SCHEDULED: "#1d4ed8",
+  SCHEDULED: "#063154",
   CONFIRMED: "#15803d",
   IN_PROGRESS: "#92400e",
   COMPLETED: "#475569",

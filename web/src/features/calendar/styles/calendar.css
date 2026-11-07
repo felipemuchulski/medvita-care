@@ -1,7 +1,7 @@
 /* Scope FullCalendar theme settings and overrides to this feature. */
 .medvita-calendar {
   --fc-monarch-primary: var(--color-primary);
-  --fc-monarch-primary-over: var(--color-primary);
+  --fc-monarch-primary-over: var(--color-primary-hover);
   --fc-monarch-primary-down: var(--color-primary-dark);
   --fc-monarch-border: var(--color-border);
   --fc-monarch-background: var(--color-surface);
@@ -9,7 +9,7 @@
   --fc-monarch-outline: var(--color-primary);
   --fc-monarch-secondary: var(--color-primary-light);
   --fc-monarch-secondary-foreground: var(--color-primary);
-  --fc-monarch-tertiary: var(--color-primary);
+  --fc-monarch-tertiary: var(--color-accent);
   --fc-monarch-tertiary-foreground: var(--color-surface);
   --fc-monarch-selected: var(--color-primary);
   --fc-monarch-selected-foreground: var(--color-surface);

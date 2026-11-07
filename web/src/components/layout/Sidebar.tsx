@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <div>
               <h1 className="text-lg font-bold">Medvita Care</h1>
-              <p className="text-xs text-blue-200">Gestão clínica</p>
+              <p className="text-xs text-brand-muted">Gestão clínica</p>
             </div>
           </div>
 
@@ -65,12 +65,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="border-y border-white/10 px-4 py-4">
           <label
             htmlFor="active-clinic"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-300"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-brand-highlight"
           >
             Clínica ativa
           </label>
           {isLoading ? (
-            <p className="text-sm text-blue-100" role="status">
+            <p className="text-sm text-primary-light" role="status">
               Carregando clínicas...
             </p>
           ) : memberships.length > 0 ? (
@@ -103,7 +103,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             </>
           ) : (
-            <p className="text-sm text-blue-100">Nenhuma clínica autorizada.</p>
+            <p className="text-sm text-primary-light">Nenhuma clínica autorizada.</p>
           )}
           {error && (
             <p role="alert" className="mt-2 text-xs text-red-200">
@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           aria-label="Navegação principal"
           className="flex-1 overflow-y-auto px-3 py-4"
         >
-          <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-blue-300">
+          <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-brand-highlight">
             Menu principal
           </p>
 
@@ -137,7 +137,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     ${
                       isActive
                         ? "bg-white/15 text-white"
-                        : "text-blue-100 hover:bg-white/10 hover:text-white"
+                        : "text-primary-light hover:bg-white/10 hover:text-white"
                     }
                   `}
                 >
@@ -150,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="border-t border-white/10 px-5 py-4">
-          <p className="text-xs text-blue-200">Medvita Care • MVP</p>
+          <p className="text-xs text-brand-muted">Medvita Care • MVP</p>
         </div>
       </aside>
     </>

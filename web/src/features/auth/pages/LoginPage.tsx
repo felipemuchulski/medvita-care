@@ -66,7 +66,7 @@ export default function LoginPage() {
 
             <div>
               <h1 className="text-2xl font-bold">Medvita Care</h1>
-              <p className="text-sm text-blue-200">Gestão clínica</p>
+              <p className="text-sm text-brand-muted">Gestão clínica</p>
             </div>
           </div>
 
@@ -75,7 +75,7 @@ export default function LoginPage() {
               Sua clínica organizada em um só lugar.
             </h2>
 
-            <p className="text-base leading-relaxed text-blue-100">
+            <p className="text-base leading-relaxed text-primary-light">
               Gerencie pacientes, agendamentos, consultas e prontuários em uma
               plataforma desenvolvida para profissionais de oftalmologia.
             </p>
@@ -89,7 +89,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="text-xs text-blue-200">
+          <p className="text-xs text-brand-muted">
             Medvita Care — Sistema de gestão clínica
           </p>
         </aside>
