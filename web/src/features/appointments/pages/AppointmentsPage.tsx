@@ -17,6 +17,7 @@ import {
 } from "../hooks/use-appointments";
 import {
   appointmentError,
+  validDate,
   canChange,
   canManage,
   formatAppointment,
@@ -76,6 +77,19 @@ function AppointmentScreen({
         {manage ? (
           <AppointmentForm
             clinic={clinic}
+            initialDate={
+              location.state?.calendarClinic === clinic &&
+              validDate(location.state?.calendarDate)
+                ? location.state.calendarDate
+                : ""
+            }
+            initialTime={
+              location.state?.calendarClinic === clinic &&
+              typeof location.state?.calendarTime === "string" &&
+              /^([01]\d|2[0-3]):[0-5]\d$/.test(location.state.calendarTime)
+                ? location.state.calendarTime
+                : ""
+            }
             pending={mutations.create.isPending}
             onSave={async (payload) => {
               try {
@@ -273,8 +287,7 @@ function AppointmentList({
             onChange={(e) =>
               update({
                 status: (e.target.value || undefined) as
-                  | AppointmentStatus
-                  | undefined,
+                  AppointmentStatus | undefined,
               })
             }
           >

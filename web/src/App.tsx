@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import LoginPage from './features/auth/pages/LoginPage'
 import ChangePasswordPage from './features/auth/pages/ChangePasswordPage'
@@ -7,6 +8,7 @@ import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
+const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
 import PatientsPage from './features/patients/pages/PatientsPage'
 import CreatePatientPage from './features/patients/pages/CreatePatientPage'
 import EditPatientPage from './features/patients/pages/EditPatientPage'
@@ -30,7 +32,7 @@ export default function App() {
           <Route path="/agendamentos/novo" element={<AppointmentsPage />} />
           <Route path="/agendamentos/:appointmentId" element={<AppointmentsPage />} />
           <Route path="/agendamentos/:appointmentId/reagendar" element={<AppointmentsPage />} />
-          <Route path="/calendario" element={<ModulePage title="Calendário" />} />
+          <Route path="/calendario" element={<Suspense fallback={<p role="status">Carregando calendário...</p>}><CalendarPage /></Suspense>} />
           <Route path="/profissionais" element={<ModulePage title="Profissionais" />} />
           <Route path="/prontuarios" element={<ModulePage title="Prontuários" />} />
           <Route path="/exames" element={<ModulePage title="Exames" />} />

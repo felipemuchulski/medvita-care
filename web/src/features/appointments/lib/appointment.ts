@@ -58,3 +58,13 @@ export function appointmentError(error: unknown) {
   }
   return "Não foi possível concluir a operação. Tente novamente.";
 }
+
+export function validDate(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    toIso(`${value}T00:00`, defaultOffset);
+    return true;
+  } catch {
+    return false;
+  }
+}

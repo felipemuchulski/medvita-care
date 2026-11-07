@@ -10,11 +10,15 @@ import {
 export function AppointmentForm({
   clinic,
   appointment,
+  initialDate = "",
+  initialTime = "",
   pending,
   onSave,
 }: {
   clinic: string;
   appointment?: Appointment;
+  initialDate?: string;
+  initialTime?: string;
   pending: boolean;
   onSave: (payload: AppointmentPayload) => Promise<void>;
 }) {
@@ -94,7 +98,9 @@ export function AppointmentForm({
               required
               className={inputClass}
               defaultValue={
-                appointment ? localInOffset(appointment.scheduledAt).slice(0, 10) : ""
+                appointment
+                  ? localInOffset(appointment.scheduledAt).slice(0, 10)
+                  : initialDate
               }
             />
           </label>
@@ -107,7 +113,9 @@ export function AppointmentForm({
               step="60"
               className={inputClass}
               defaultValue={
-                appointment ? localInOffset(appointment.scheduledAt).slice(11, 16) : ""
+                appointment
+                  ? localInOffset(appointment.scheduledAt).slice(11, 16)
+                  : initialTime
               }
             />
           </label>
