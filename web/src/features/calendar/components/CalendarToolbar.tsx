@@ -30,7 +30,7 @@ export function CalendarToolbar({
       aria-label="Navegação do calendário"
       className="space-y-3 rounded-xl border border-border bg-white p-4"
     >
-      <h2 aria-live="polite" className="break-words text-lg font-semibold">
+      <h2 aria-live="polite" className="break-words text-lg font-semibold first-letter:uppercase">
         {title || "Calendário"}
       </h2>
       <div className="flex flex-wrap items-end gap-2">
