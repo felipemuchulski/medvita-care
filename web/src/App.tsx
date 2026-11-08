@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
 import ProfessionalsPage from './features/professionals/pages/ProfessionalsPage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
+const ClinicsPage = lazy(() => import('./features/clinics/pages/ClinicsPage'))
 const ExamsPage = lazy(() => import('./features/exams/pages/ExamsPage'))
 const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
 const MedicalRecordsPage = lazy(
@@ -142,7 +143,43 @@ export default function App() {
           />
           <Route
             path="/clinicas"
-            element={<ModulePage title="Clínicas" />}
+            element={
+              <Suspense fallback={<p role="status">Carregando clínicas...</p>}>
+                <ClinicsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/clinicas/nova"
+            element={
+              <Suspense fallback={<p role="status">Carregando clínica...</p>}>
+                <ClinicsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/clinicas/:clinicId"
+            element={
+              <Suspense fallback={<p role="status">Carregando clínica...</p>}>
+                <ClinicsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/clinicas/:clinicId/editar"
+            element={
+              <Suspense fallback={<p role="status">Carregando clínica...</p>}>
+                <ClinicsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/minha-clinica"
+            element={
+              <Suspense fallback={<p role="status">Carregando clínica...</p>}>
+                <ClinicsPage />
+              </Suspense>
+            }
           />
           <Route
             path="/usuarios"
