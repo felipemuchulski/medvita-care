@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: "Roboto", system-ui, sans-serif;
   --font-heading: "Montserrat", system-ui, sans-serif;
   --color-primary: #063154;
   --color-primary-dark: #001D39;
@@ -26,7 +27,7 @@ body {
   margin: 0;
   background-color: #F8FAFC;
   color: #0F172A;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
