@@ -10,6 +10,10 @@ export const encounterLabels = {
 }
 export const canReadClinicalRecords = (role: ClinicRole | null) =>
   role === 'OPHTHALMOLOGIST'
+export const canPreviewClinicalRecords = (
+  role: ClinicRole | null,
+  isSystemAdmin = false,
+) => import.meta.env.DEV && (isSystemAdmin || role === 'ADMIN')
 export const canEditEncounter = (encounter: Encounter, user: string) =>
   encounter.status === 'IN_PROGRESS' && encounter.professional.userId === user
 export const canStartEncounter = (appointment: Appointment, user: string) =>

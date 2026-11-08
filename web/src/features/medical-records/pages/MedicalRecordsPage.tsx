@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { defaultOffset, toIso } from '../../appointments/lib/appointment'
 import { Link, useParams } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
@@ -11,13 +11,34 @@ import {
 import { usePatient } from '../../patients/hooks/use-patients'
 import { formatDateOnly } from '../../patients/lib/patient-format'
 import { useEncounters } from '../hooks/use-encounters'
-import { canReadClinicalRecords, clinicalError, encounterLabels } from '../lib/encounter'
+import {
+  canReadClinicalRecords,
+  canPreviewClinicalRecords,
+  clinicalError,
+  encounterLabels,
+} from '../lib/encounter'
 import type { EncounterStatus } from '../types/encounter'
 import { EncounterList } from '../components/EncounterList'
+const ClinicalDesignPreview = import.meta.env.DEV
+  ? lazy(() => import('../components/ClinicalDesignPreview'))
+  : null
+
 export default function MedicalRecordsPage() {
   const clinic = useClinic()
   const { user } = useAuth()
   const { patientId } = useParams()
+  if (
+    user &&
+    !canReadClinicalRecords(clinic.activeRole) &&
+    canPreviewClinicalRecords(clinic.activeRole, user.isSystemAdmin) &&
+    ClinicalDesignPreview
+  ) {
+    return (
+      <Suspense fallback={<p role="status">Carregando prévia visual...</p>}>
+        <ClinicalDesignPreview />
+      </Suspense>
+    )
+  }
   if (clinic.isLoading) return <p role="status">Carregando clínica...</p>
   if (!clinic.activeClinicId)
     return (

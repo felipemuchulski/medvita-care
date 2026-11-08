@@ -1,7 +1,11 @@
 import { Eye, X } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { navigationItems } from '../../app/navigation'
-import { canReadClinicalRecords } from '../../features/medical-records/lib/encounter'
+import { useAuth } from '../../hooks/use-auth'
+import {
+  canReadClinicalRecords,
+  canPreviewClinicalRecords,
+} from '../../features/medical-records/lib/encounter'
 import { useClinic } from '../../hooks/use-clinic'
 
 interface SidebarProps {
@@ -10,6 +14,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { user } = useAuth()
   const { memberships, activeClinicId, activeRole, isLoading, error, selectClinic } =
     useClinic()
 
@@ -130,7 +135,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {navigationItems
               .filter(
                 (item) =>
-                  item.path !== '/prontuarios' || canReadClinicalRecords(activeRole),
+                  item.path !== '/prontuarios' ||
+                  canReadClinicalRecords(activeRole) ||
+                  canPreviewClinicalRecords(activeRole, user?.isSystemAdmin),
               )
               .map((item) => {
                 const Icon = item.icon
