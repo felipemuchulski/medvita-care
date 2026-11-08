@@ -80,7 +80,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </p>
           ) : memberships.length > 0 ? (
             <>
-              {memberships.length === 1 ? (
+              {memberships.length === 1 && activeClinicId ? (
                 <p className="flex min-h-11 items-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
                   {memberships[0].clinic?.name ?? memberships[0].clinicId}
                 </p>
@@ -164,7 +164,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   `}
                   >
                     <Icon size={19} />
-                    <span>{item.label}</span>
+                    <span>
+                      {item.path === '/clinicas' && !user?.isSystemAdmin
+                        ? 'Minha clínica'
+                        : item.label}
+                    </span>
                   </NavLink>
                 )
               })}

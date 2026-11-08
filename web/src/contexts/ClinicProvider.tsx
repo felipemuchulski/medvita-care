@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { isApiError } from '../api/api-error'
 import { clinicsApi } from '../features/clinics/api/clinics-api'
 import { getAllowedMemberships } from '../features/clinics/lib/allowed-memberships'
@@ -19,18 +19,39 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     queryKey: ['clinic-memberships', user?.id],
     queryFn: () => clinicsApi.listUserMemberships(user!.id),
     enabled: Boolean(user),
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   })
 
   const memberships = useMemo(
-    () => (user ? getAllowedMemberships(user, membershipsQuery.data ?? []) : []),
-    [membershipsQuery.data, user],
+    () =>
+      user && !membershipsQuery.isError
+        ? getAllowedMemberships(user, membershipsQuery.data ?? [])
+        : [],
+    [membershipsQuery.data, membershipsQuery.isError, user],
   )
 
   const selectedClinicId =
     selection && selection.userId === user?.id ? selection.clinicId : null
-  const activeMembership =
-    memberships.find((membership) => membership.clinicId === selectedClinicId) ??
-    (memberships.length === 1 ? memberships[0] : null)
+  const activeMembership = selectedClinicId
+    ? (memberships.find((membership) => membership.clinicId === selectedClinicId) ?? null)
+    : memberships.length === 1
+      ? memberships[0]
+      : null
+  const previousClinic = useRef<string | null>(null)
+  const activeId = activeMembership?.clinicId ?? null
+  useEffect(() => {
+    const previous = previousClinic.current
+    previousClinic.current = activeId
+    if (previous && previous !== activeId) {
+      const predicate = (query: { queryKey: readonly unknown[] }) =>
+        query.queryKey[0] !== 'clinic-memberships' &&
+        query.queryKey[0] !== 'clinic-management' &&
+        query.queryKey.includes(previous)
+      void queryClient.cancelQueries({ predicate })
+      queryClient.removeQueries({ predicate })
+    }
+  }, [activeId])
 
   function selectClinic(clinicId: string): void {
     if (!user || !memberships.some((item) => item.clinicId === clinicId)) {
@@ -45,7 +66,9 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     )
       return
     queryClient.removeQueries({
-      predicate: (query) => query.queryKey[0] !== 'clinic-memberships',
+      predicate: (query) =>
+        query.queryKey[0] !== 'clinic-memberships' &&
+        query.queryKey[0] !== 'clinic-management',
     })
     setSelection({ userId: user.id, clinicId })
   }
