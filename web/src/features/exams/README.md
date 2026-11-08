@@ -57,3 +57,11 @@ Limitações: zoom nativo/dispositivos físicos e Safari/Firefox não foram homo
 
 Próximas etapas: anexos privados com regras de acesso/tamanho/retenção, política de compartilhamento entre profissionais se necessária, e administração de catálogo apenas quando houver demanda. Essas operações não são apresentadas como disponíveis no MVP.
 
+
+## Prévia administrativa em desenvolvimento
+
+ADMIN e System Admin sem papel clínico elegível podem abrir Exames no ambiente Vite de desenvolvimento para validar o design. A prévia é isolada em `components/ExamDesignPreview.tsx`, carregada somente com `import.meta.env.DEV`. O helper `canPreviewExams` é usado no menu e na página; não amplia `canAccessExams` nem altera o backend.
+
+Áreas: filtros, solicitação e resultado descritivo. Reutiliza ExamFilters, ExamRequestFields e ExamField. Tipos são exemplos visuais identificados como prévia, sem consulta ao catálogo. Paciente/atendimento e ações de persistência ficam desabilitados. Texto digitado permanece apenas no componente e é descartado ao sair ou mudar o contexto.
+
+Validação: lint/build aprovados; Chromium com respostas simuladas de autenticação/vínculos confirmou prévia para ADMIN e System Admin, bloqueio para recepcionista e fluxo normal para oftalmologista. Nenhuma chamada de exames/pacientes/atendimentos/profissionais na prévia; formulário sem overflow nas seis larguras. Build de produção não contém o componente de prévia; teste no servidor de preview confirmou menu oculto e acesso negado para ADMIN.

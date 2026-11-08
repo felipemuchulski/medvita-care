@@ -1,4 +1,4 @@
-import { canAccessExams } from '../../features/exams/lib/exam'
+import { canAccessExams, canPreviewExams } from '../../features/exams/lib/exam'
 import { Eye, X } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { navigationItems } from '../../app/navigation'
@@ -136,7 +136,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {navigationItems
               .filter(
                 (item) =>
-                  (item.path !== '/exames' || canAccessExams(activeRole)) &&
+                  (item.path !== '/exames' ||
+                    canAccessExams(activeRole) ||
+                    canPreviewExams(activeRole, user?.isSystemAdmin)) &&
                   (item.path !== '/prontuarios' ||
                     canReadClinicalRecords(activeRole) ||
                     canPreviewClinicalRecords(activeRole, user?.isSystemAdmin)),

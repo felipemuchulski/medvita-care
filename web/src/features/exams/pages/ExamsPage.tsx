@@ -1,9 +1,9 @@
 import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import { buttonClass } from '../../appointments/components/Selectors'
-import { canAccessExams, examError } from '../lib/exam'
+import { canAccessExams, canPreviewExams, examError } from '../lib/exam'
 import { useExam, useExams, useExamTypes } from '../hooks/use-exams'
 import { ExamFilters } from '../components/ExamFilters'
 import { ExamList } from '../components/ExamList'
@@ -11,11 +11,27 @@ import { ExamForm } from '../components/ExamForm'
 import { ExamDetails } from '../components/ExamDetails'
 import type { ExamStatus } from '../types/exam'
 
+const ExamDesignPreview = import.meta.env.DEV
+  ? lazy(() => import('../components/ExamDesignPreview'))
+  : null
+
 export default function ExamsPage() {
   const { user } = useAuth()
   const clinic = useClinic()
   const { examId } = useParams()
   const location = useLocation()
+  if (
+    user &&
+    !canAccessExams(clinic.activeRole) &&
+    canPreviewExams(clinic.activeRole, user.isSystemAdmin) &&
+    ExamDesignPreview
+  ) {
+    return (
+      <Suspense fallback={<p role="status">Carregando prévia de exames...</p>}>
+        <ExamDesignPreview key={`${user.id}:${clinic.activeClinicId ?? 'no-clinic'}`} />
+      </Suspense>
+    )
+  }
   const create = location.pathname.endsWith('/novo')
   const title = create ? 'Solicitar exame' : examId ? 'Detalhes do exame' : 'Exames'
   return (

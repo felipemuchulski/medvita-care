@@ -2,6 +2,8 @@ import type { ClinicRole } from '../../auth/types/auth'
 import { isApiError } from '../../../api/api-error'
 import { formatAppointment } from '../../appointments/lib/appointment'
 export const canAccessExams = (role: ClinicRole | null) => role === 'OPHTHALMOLOGIST'
+export const canPreviewExams = (role: ClinicRole | null, isSystemAdmin = false) =>
+  import.meta.env.DEV && (role === 'ADMIN' || isSystemAdmin)
 export const examStatusLabels = {
   REQUESTED: 'Solicitado',
   IN_PROGRESS: 'Em andamento',
