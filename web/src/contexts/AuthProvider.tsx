@@ -103,6 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [clearSession],
   )
 
+  const revalidateSession = useCallback(
+    async () => Boolean(await refreshSession()),
+    [refreshSession],
+  )
+
   const value = useMemo<AuthContextValue>(
     () => ({
       status: restoring ? 'loading' : session ? 'authenticated' : 'unauthenticated',
@@ -110,8 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       changePassword,
+      revalidateSession,
     }),
-    [changePassword, login, logout, restoring, session],
+    [changePassword, login, logout, restoring, session, revalidateSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

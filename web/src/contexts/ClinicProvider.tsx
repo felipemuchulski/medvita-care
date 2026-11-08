@@ -47,6 +47,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
       const predicate = (query: { queryKey: readonly unknown[] }) =>
         query.queryKey[0] !== 'clinic-memberships' &&
         query.queryKey[0] !== 'clinic-management' &&
+        query.queryKey[0] !== 'user-management' &&
         query.queryKey.includes(previous)
       void queryClient.cancelQueries({ predicate })
       queryClient.removeQueries({ predicate })
@@ -68,7 +69,8 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({
       predicate: (query) =>
         query.queryKey[0] !== 'clinic-memberships' &&
-        query.queryKey[0] !== 'clinic-management',
+        query.queryKey[0] !== 'clinic-management' &&
+        query.queryKey[0] !== 'user-management',
     })
     setSelection({ userId: user.id, clinicId })
   }

@@ -11,6 +11,7 @@ export interface AuthContextValue {
   status: AuthStatus
   user: AuthenticatedUser | null
   login: (payload: LoginRequest) => Promise<void>
+  revalidateSession: () => Promise<boolean>
   logout: () => Promise<void>
   changePassword: (payload: ChangePasswordRequest) => Promise<void>
 }
