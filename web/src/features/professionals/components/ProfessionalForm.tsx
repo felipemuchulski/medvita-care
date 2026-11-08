@@ -88,10 +88,18 @@ export function ProfessionalForm({
       className="space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6"
     >
       {user?.isSystemAdmin && (
-        <p className="text-sm text-text-secondary">
-          O perfil é único por usuário. Alterações profissionais valem para todas as
-          clínicas às quais ele está vinculado.
-        </p>
+        <aside
+          aria-label="Informação administrativa"
+          className="my-[10px]! rounded-xl border border-gray-300 border-l-4 border-l-primary bg-gray-100 p-4"
+        >
+          <h2 className="mb-2 text-sm font-semibold text-primary">
+            Informação administrativa
+          </h2>
+          <p className="text-sm leading-relaxed text-text-secondary">
+            O perfil é único por usuário. Alterações profissionais valem para todas as
+            clínicas às quais ele está vinculado.
+          </p>
+        </aside>
       )}
       <fieldset
         disabled={isSubmitting}
@@ -106,7 +114,7 @@ export function ProfessionalForm({
             className="space-y-3"
             aria-label="Usuário associado"
           >
-            <label className="block space-y-2">
+            <label className="form-field">
               <span className="font-medium">Pesquisar usuário elegível</span>
               <input
                 type="search"
@@ -134,7 +142,7 @@ export function ProfessionalForm({
               </div>
             ) : (
               <>
-                <label className="block space-y-2">
+                <label className="form-field">
                   <span className="font-medium">Usuário associado *</span>
                   <select
                     className={inputClass}
@@ -162,22 +170,25 @@ export function ProfessionalForm({
                   </select>
                 </label>
                 {!candidates.length && (
-                  <p role="status">
-                    Nenhum usuário elegível. É necessário um usuário ativo com vínculo
-                    ativo de oftalmologista e sem perfil profissional existente. Solicite
-                    a regularização dos vínculos à administração.
-                  </p>
+                  <>
+                    <div className="mt-3 rounded-md bg-gray-200 p-4">
+                      <p
+                        role="status"
+                        className="text-sm leading-relaxed text-text-primary"
+                      >
+                        Nenhum usuário elegível. É necessário um usuário ativo com vínculo
+                        ativo de oftalmologista e sem perfil profissional existente.
+                        Solicite a regularização dos vínculos à administração.
+                      </p>
+                    </div>
+                  </>
                 )}
               </>
             )}
-            <p className="text-sm text-text-secondary">
-              A busca consulta somente os usuários já vinculados à clínica. Este
-              formulário não cria usuários nem vínculos.
-            </p>
           </section>
         )}
         <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-          <label className="block min-w-0 space-y-2">
+          <label className="form-field">
             <span>CRM *</span>
             <input
               {...register('crm')}
@@ -196,7 +207,7 @@ export function ProfessionalForm({
               </span>
             )}
           </label>
-          <label className="block min-w-0 space-y-2">
+          <label className="form-field">
             <span>UF do CRM *</span>
             <select
               {...register('crmState')}
@@ -224,7 +235,7 @@ export function ProfessionalForm({
               </span>
             )}
           </label>
-          <label className="block min-w-0 space-y-2">
+          <label className="form-field">
             <span>RQE</span>
             <input
               {...register('rqe')}
@@ -243,7 +254,7 @@ export function ProfessionalForm({
               </span>
             )}
           </label>
-          <label className="block min-w-0 space-y-2">
+          <label className="form-field">
             <span>Especialidade *</span>
             <input
               {...register('specialty')}

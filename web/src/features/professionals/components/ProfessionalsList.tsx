@@ -35,7 +35,7 @@ export function ProfessionalsList({
         aria-label="Pesquisa e filtros de profissionais"
         className="grid min-w-0 gap-4 rounded-xl border border-border bg-white p-4 sm:grid-cols-2"
       >
-        <label className="min-w-0 space-y-2">
+        <label className="form-field">
           <span className="block font-medium">Pesquisar profissional</span>
           <input
             type="search"
@@ -45,7 +45,7 @@ export function ProfessionalsList({
             placeholder="Nome, CRM, RQE ou especialidade"
           />
         </label>
-        <label className="min-w-0 space-y-2">
+        <label className="form-field">
           <span className="block font-medium">UF do CRM</span>
           <select
             className={inputClass}

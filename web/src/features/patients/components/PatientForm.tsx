@@ -20,7 +20,7 @@ interface PatientFormProps {
 
 const inputClassName =
   'min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:opacity-70'
-const labelClassName = 'block text-sm font-medium text-text-primary'
+const labelClassName = 'mb-1 block text-sm font-medium text-text-primary'
 const errorClassName = 'mt-1 text-sm text-red-700'
 
 function FieldError({ id, message }: { id: string; message?: string }) {

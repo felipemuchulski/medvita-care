@@ -91,7 +91,7 @@ export function AppointmentForm({
           </div>
         )}
         <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4">
-          <label className="min-w-0">
+          <label className="form-field">
             Data
             <input
               name="date"
@@ -105,7 +105,7 @@ export function AppointmentForm({
               }
             />
           </label>
-          <label className="min-w-0">
+          <label className="form-field">
             Horário
             <input
               name="time"
@@ -120,7 +120,7 @@ export function AppointmentForm({
               }
             />
           </label>
-          <label>
+          <label className="form-field">
             Duração em minutos
             <input
               className={inputClass}
@@ -136,7 +136,7 @@ export function AppointmentForm({
         </div>
         {!appointment && (
           <>
-            <label className="block">
+            <label className="form-field">
               Motivo da consulta
               <input
                 name="reason"
@@ -144,7 +144,7 @@ export function AppointmentForm({
                 className={inputClass}
               />
             </label>
-            <label className="block">
+            <label className="form-field">
               Observações
               <textarea
                 name="notes"

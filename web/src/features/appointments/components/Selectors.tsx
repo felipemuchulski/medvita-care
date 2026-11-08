@@ -39,63 +39,67 @@ export function PatientSelector({
   })
   return (
     <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
-      <label
-        htmlFor={searchId}
-        className="block font-medium"
-      >
-        Buscar paciente
-      </label>
-      <div className="flex gap-2">
-        <input
-          id={searchId}
-          aria-label="Pesquisar paciente por nome ou CPF"
+      <div className="form-field">
+        <label
+          htmlFor={searchId}
+          className="block font-medium"
+        >
+          Buscar paciente
+        </label>
+        <div className="flex gap-2">
+          <input
+            id={searchId}
+            aria-label="Pesquisar paciente por nome ou CPF"
+            className={inputClass}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Nome ou CPF"
+          />
+          <button
+            type="button"
+            className={compactButtonClass}
+            onClick={() => {
+              setSearch(draft.trim())
+              setPage(1)
+            }}
+          >
+            Buscar
+          </button>
+        </div>
+      </div>
+      <div className="form-field">
+        <label
+          htmlFor={patientId}
+          className="block font-medium"
+        >
+          Paciente
+        </label>
+        <select
+          id={patientId}
+          aria-label="Paciente"
           className={inputClass}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Nome ou CPF"
-        />
-        <button
-          type="button"
-          className={compactButtonClass}
-          onClick={() => {
-            setSearch(draft.trim())
-            setPage(1)
+          value={value}
+          onChange={(e) => {
+            setSelectedLabel(e.target.selectedOptions[0].text)
+            onChange(e.target.value)
           }}
         >
-          Buscar
-        </button>
-      </div>
-      <label
-        htmlFor={patientId}
-        className="block font-medium"
-      >
-        Paciente
-      </label>
-      <select
-        id={patientId}
-        aria-label="Paciente"
-        className={inputClass}
-        value={value}
-        onChange={(e) => {
-          setSelectedLabel(e.target.selectedOptions[0].text)
-          onChange(e.target.value)
-        }}
-      >
-        {value && !query.data?.data.some((p) => p.id === value) && (
-          <option value={value}>{selectedLabel || 'Paciente selecionado'}</option>
-        )}
-        <option value="">
-          {query.isLoading ? 'Carregando...' : 'Selecione um paciente'}
-        </option>
-        {query.data?.data.map((p) => (
-          <option
-            key={p.id}
-            value={p.id}
-          >
-            {p.name} · nasc. {p.birthDate.split('-').reverse().join('/')}
+          {value && !query.data?.data.some((p) => p.id === value) && (
+            <option value={value}>{selectedLabel || 'Paciente selecionado'}</option>
+          )}
+          <option value="">
+            {query.isLoading ? 'Carregando...' : 'Selecione um paciente'}
           </option>
-        ))}
-      </select>
+          {query.data?.data.map((p) => (
+            <option
+              key={p.id}
+              value={p.id}
+            >
+              {p.name} · nasc. {p.birthDate.split('-').reverse().join('/')}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="space-y-2">
         {query.isError && (
           <p role="alert">
@@ -159,7 +163,7 @@ export function ProfessionalSelector({
   const professionalId = useId()
   const query = useProfessionals(clinic)
   return (
-    <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
+    <div className="form-field md:col-span-2">
       <label
         htmlFor={professionalId}
         className="block font-medium"

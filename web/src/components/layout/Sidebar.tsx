@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="border-y border-white/10 px-4 py-4">
           <label
             htmlFor="active-clinic"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-brand-highlight"
+            className="mb-1 block text-xs font-semibold uppercase tracking-wider text-brand-highlight"
           >
             Clínica ativa
           </label>

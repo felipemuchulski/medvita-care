@@ -58,7 +58,7 @@ function Calendar({ clinic, manage }: { clinic: string; manage: boolean }) {
             value={professionalId}
             onChange={(id) => update({ professional: id })}
           />
-          <div className="min-w-0 space-y-2 md:col-span-2">
+          <div className="form-field md:col-span-2">
             <label
               htmlFor={statusId}
               className="block font-medium"

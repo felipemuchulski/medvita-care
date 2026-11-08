@@ -127,7 +127,7 @@ export default function LoginPage() {
             className="space-y-5"
             aria-busy={isSubmitting}
           >
-            <div className="space-y-2">
+            <div className="form-field">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-text-primary"
@@ -156,7 +156,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="form-field">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-text-primary"

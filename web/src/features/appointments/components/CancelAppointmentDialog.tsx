@@ -60,7 +60,7 @@ export function CancelAppointmentDialog({
           {appointment.patient.name} · {formatAppointment(appointment.scheduledAt)}{' '}
           (UTC−03:00), com {appointment.professional.user.name}.
         </p>
-        <label className="block">
+        <label className="form-field">
           Motivo obrigatório
           <textarea
             autoFocus

@@ -279,7 +279,7 @@ function AppointmentList({ clinic, manage }: { clinic: string; manage: boolean }
           value={filters.professionalId ?? ''}
           onChange={(professionalId) => update({ professionalId })}
         />
-        <label>
+        <label className="form-field">
           Status
           <select
             className={inputClass}
@@ -305,7 +305,7 @@ function AppointmentList({ clinic, manage }: { clinic: string; manage: boolean }
           {(['from', 'to'] as const).map((key) => (
             <label
               key={key}
-              className="min-w-0"
+              className="form-field"
             >
               {key === 'from' ? 'De' : 'Até'}
               <input

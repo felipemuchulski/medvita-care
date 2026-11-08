@@ -58,7 +58,7 @@ export default function ChangePasswordPage() {
         aria-busy={isSubmitting}
         className="space-y-5 rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6"
       >
-        <div className="space-y-2">
+        <div className="form-field">
           <label
             htmlFor="currentPassword"
             className="block text-sm font-medium"
@@ -76,7 +76,7 @@ export default function ChangePasswordPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="form-field">
           <label
             htmlFor="newPassword"
             className="block text-sm font-medium"
@@ -96,7 +96,7 @@ export default function ChangePasswordPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="form-field">
           <label
             htmlFor="confirmPassword"
             className="block text-sm font-medium"

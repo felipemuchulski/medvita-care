@@ -56,23 +56,23 @@ export function CalendarToolbar({
         >
           Próximo
         </button>
-        <label className="block min-w-0 max-w-full text-sm">
+        <label className="form-field max-w-full text-sm">
           Selecionar data
           <input
             aria-label="Selecionar data"
             type="date"
             value={date}
-            className={`${inputClass} mt-1`}
+            className={inputClass}
             onChange={(e) => {
               if (e.target.value) onDate(e.target.value)
             }}
           />
         </label>
-        <label className="block min-w-0 max-w-full text-sm">
+        <label className="form-field max-w-full text-sm">
           Visualização
           <select
             aria-label="Visualização"
-            className={`${inputClass} mt-1`}
+            className={inputClass}
             value={view}
             onChange={(e) => onView(e.target.value as CalendarViewName)}
           >
