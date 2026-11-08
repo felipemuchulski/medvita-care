@@ -1,6 +1,7 @@
 import { ArrowLeft, Pencil } from 'lucide-react'
 import { Link, Navigate, useLocation, useParams } from 'react-router'
 import { isApiError } from '../../../api/api-error'
+import { canReadClinicalRecords } from '../../medical-records/lib/encounter'
 import { useClinic } from '../../../hooks/use-clinic'
 import PatientStatusBadge from '../components/PatientStatusBadge'
 import PatientsUnavailable from '../components/PatientsUnavailable'
@@ -177,13 +178,17 @@ export default function PatientDetailsPage() {
         </dl>
       </section>
 
-      <section className="rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6">
-        <h2 className="text-lg font-semibold">Histórico clínico</h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          O histórico será apresentado aqui quando o módulo de atendimentos for integrado.
-          Nenhum dado clínico simulado é exibido.
-        </p>
-      </section>
+      {canReadClinicalRecords(activeRole) && (
+        <section className="rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6">
+          <h2 className="text-lg font-semibold">Histórico clínico</h2>
+          <Link
+            className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-primary px-4 py-2 font-medium text-primary"
+            to={`/prontuarios/pacientes/${patient.id}`}
+          >
+            Abrir prontuário do paciente
+          </Link>
+        </section>
+      )}
     </div>
   )
 }

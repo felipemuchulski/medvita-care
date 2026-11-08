@@ -1,6 +1,7 @@
 import { Eye, X } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { navigationItems } from '../../app/navigation'
+import { canReadClinicalRecords } from '../../features/medical-records/lib/encounter'
 import { useClinic } from '../../hooks/use-clinic'
 
 interface SidebarProps {
@@ -9,7 +10,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { memberships, activeClinicId, isLoading, error, selectClinic } = useClinic()
+  const { memberships, activeClinicId, activeRole, isLoading, error, selectClinic } =
+    useClinic()
 
   return (
     <>
@@ -125,16 +127,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </p>
 
           <div className="space-y-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
+            {navigationItems
+              .filter(
+                (item) =>
+                  item.path !== '/prontuarios' || canReadClinicalRecords(activeRole),
+              )
+              .map((item) => {
+                const Icon = item.icon
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/'}
-                  onClick={onClose}
-                  className={({ isActive }) => `
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.path === '/'}
+                    onClick={onClose}
+                    className={({ isActive }) => `
                     flex items-center gap-3 rounded-lg
                     px-4 py-3 text-sm font-medium
                     transition-colors
@@ -144,12 +151,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         : 'text-primary-light hover:bg-white/10 hover:text-white'
                     }
                   `}
-                >
-                  <Icon size={19} />
-                  <span>{item.label}</span>
-                </NavLink>
-              )
-            })}
+                  >
+                    <Icon size={19} />
+                    <span>{item.label}</span>
+                  </NavLink>
+                )
+              })}
           </div>
         </nav>
 

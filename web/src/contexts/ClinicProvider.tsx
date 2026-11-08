@@ -38,6 +38,12 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
     }
 
     if (clinicId === activeMembership?.clinicId) return
+    if (
+      !window.dispatchEvent(
+        new Event('medvita:before-clinic-change', { cancelable: true }),
+      )
+    )
+      return
     queryClient.removeQueries({
       predicate: (query) => query.queryKey[0] !== 'clinic-memberships',
     })

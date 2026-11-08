@@ -99,7 +99,11 @@ export default function Header({ onOpenMenu }: HeaderProps) {
           title="Sair"
           onClick={async () => {
             setIsLoggingOut(true)
-            await logout()
+            try {
+              await logout()
+            } finally {
+              setIsLoggingOut(false)
+            }
           }}
           className="flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-60"
         >

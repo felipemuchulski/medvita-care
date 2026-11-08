@@ -10,6 +10,10 @@ import ModulePage from './pages/ModulePage'
 import ProfessionalsPage from './features/professionals/pages/ProfessionalsPage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
 const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
+const MedicalRecordsPage = lazy(
+  () => import('./features/medical-records/pages/MedicalRecordsPage'),
+)
+const EncounterPage = lazy(() => import('./features/medical-records/pages/EncounterPage'))
 import PatientsPage from './features/patients/pages/PatientsPage'
 import CreatePatientPage from './features/patients/pages/CreatePatientPage'
 import EditPatientPage from './features/patients/pages/EditPatientPage'
@@ -89,7 +93,27 @@ export default function App() {
           />
           <Route
             path="/prontuarios"
-            element={<ModulePage title="Prontuários" />}
+            element={
+              <Suspense fallback={<p role="status">Carregando prontuários...</p>}>
+                <MedicalRecordsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/prontuarios/pacientes/:patientId"
+            element={
+              <Suspense fallback={<p role="status">Carregando histórico...</p>}>
+                <MedicalRecordsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/prontuarios/atendimentos/:encounterId"
+            element={
+              <Suspense fallback={<p role="status">Carregando atendimento...</p>}>
+                <EncounterPage />
+              </Suspense>
+            }
           />
           <Route
             path="/exames"

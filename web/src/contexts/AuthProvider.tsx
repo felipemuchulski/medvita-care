@@ -58,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    if (!window.dispatchEvent(new Event('medvita:before-logout', { cancelable: true })))
+      return
     try {
       if (sessionRef.current) await authApi.logout()
     } catch {

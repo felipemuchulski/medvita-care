@@ -25,6 +25,7 @@ import {
   toIso,
 } from '../lib/appointment'
 import type { AppointmentQuery, AppointmentStatus } from '../types/appointment'
+import { EncounterAppointmentAction } from '../../medical-records/components/EncounterAppointmentAction'
 import { CancelAppointmentDialog } from '../components/CancelAppointmentDialog'
 export default function AppointmentsPage() {
   const { activeClinicId, activeRole, isLoading, error } = useClinic()
@@ -196,6 +197,7 @@ function AppointmentScreen({ clinic, manage }: { clinic: string; manage: boolean
               ))}
             </dl>
           </article>
+          <EncounterAppointmentAction appointment={a} />
           {allowed && (
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
