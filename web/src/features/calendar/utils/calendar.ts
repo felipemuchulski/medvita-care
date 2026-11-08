@@ -48,6 +48,7 @@ export function appointmentsForDay(items: Appointment[], day: string) {
 }
 
 
+
 export function hourForDay(a: Appointment, day: string) {
   const { start } = dayBounds(day);
   return Math.max(0, Math.floor((Date.parse(a.scheduledAt) - start) / 3600000));
