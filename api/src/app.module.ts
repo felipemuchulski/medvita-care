@@ -1,3 +1,4 @@
+import { ExamsModule } from "./exams/exams.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -48,6 +49,7 @@ import { connectionOptions } from "./database/connection-options";
     PatientsModule,
     AppointmentsModule,
     EncountersModule,
+    ExamsModule,
     AuditModule,
     AuthModule,
   ],
