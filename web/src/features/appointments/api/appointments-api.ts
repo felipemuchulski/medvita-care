@@ -4,8 +4,8 @@ import type {
   AppointmentPayload,
   AppointmentQuery,
   AppointmentResponse,
-  Professional,
 } from "../types/appointment";
+import { professionalsApi } from "../../professionals/api/professionals-api";
 const base = (clinic: string) => `/clinics/${clinic}/appointments`;
 export const appointmentsApi = {
   list: (clinic: string, query: AppointmentQuery, signal?: AbortSignal) =>
@@ -25,8 +25,5 @@ export const appointmentsApi = {
     httpClient.patch<Appointment>(`${base(clinic)}/${id}/reschedule`, payload),
   cancel: (clinic: string, id: string, reason: string) =>
     httpClient.patch<Appointment>(`${base(clinic)}/${id}/cancel`, { reason }),
-  professionals: (clinic: string, signal?: AbortSignal) =>
-    httpClient.get<Professional[]>(`/clinics/${clinic}/professionals`, {
-      signal,
-    }),
+  professionals: professionalsApi.list,
 };

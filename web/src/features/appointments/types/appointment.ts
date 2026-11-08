@@ -6,13 +6,8 @@ export type AppointmentStatus =
   | "COMPLETED"
   | "CANCELLED"
   | "NO_SHOW";
-export interface Professional {
-  id: string;
-  userId: string;
-  crm: string;
-  crmState: string;
-  user: { name: string; active: boolean };
-}
+export type { Professional } from "../../professionals/types/professional";
+import type { Professional } from "../../professionals/types/professional";
 export interface Appointment {
   id: string;
   clinicId: string;

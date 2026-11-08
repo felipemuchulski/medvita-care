@@ -7,6 +7,7 @@ import PublicOnlyRoute from './features/auth/routes/PublicOnlyRoute'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
+import ProfessionalsPage from './features/professionals/pages/ProfessionalsPage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
 const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
 import PatientsPage from './features/patients/pages/PatientsPage'
@@ -33,7 +34,10 @@ export default function App() {
           <Route path="/agendamentos/:appointmentId" element={<AppointmentsPage />} />
           <Route path="/agendamentos/:appointmentId/reagendar" element={<AppointmentsPage />} />
           <Route path="/calendario" element={<Suspense fallback={<p role="status">Carregando calendário...</p>}><CalendarPage /></Suspense>} />
-          <Route path="/profissionais" element={<ModulePage title="Profissionais" />} />
+          <Route path="/profissionais" element={<ProfessionalsPage />} />
+          <Route path="/profissionais/novo" element={<ProfessionalsPage />} />
+          <Route path="/profissionais/:professionalId" element={<ProfessionalsPage />} />
+          <Route path="/profissionais/:professionalId/editar" element={<ProfessionalsPage />} />
           <Route path="/prontuarios" element={<ModulePage title="Prontuários" />} />
           <Route path="/exames" element={<ModulePage title="Exames" />} />
           <Route path="/clinicas" element={<ModulePage title="Clínicas" />} />

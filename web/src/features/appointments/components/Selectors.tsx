@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { patientsApi } from "../../patients/api/patients-api";
-import { appointmentsApi } from "../api/appointments-api";
+import { useProfessionals } from "../../professionals/hooks/use-professionals";
 
 export const inputClass =
   "h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base";
@@ -152,10 +152,7 @@ export function ProfessionalSelector({
   onChange: (id: string) => void;
 }) {
   const professionalId = useId();
-  const query = useQuery({
-    queryKey: ["appointment-professionals", clinic],
-    queryFn: ({ signal }) => appointmentsApi.professionals(clinic, signal),
-  });
+  const query = useProfessionals(clinic);
   return (
     <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
       <label htmlFor={professionalId} className="block font-medium">
