@@ -1,9 +1,5 @@
-import { inputClass } from "../../appointments/components/Selectors";
-import {
-  calendarControl,
-  viewLabels,
-  type CalendarViewName,
-} from "../types/calendar";
+import { inputClass } from '../../appointments/components/Selectors'
+import { calendarControl, viewLabels, type CalendarViewName } from '../types/calendar'
 export function CalendarToolbar({
   title,
   date,
@@ -15,23 +11,26 @@ export function CalendarToolbar({
   onDate,
   onView,
 }: {
-  title: string;
-  date: string;
-  view: string;
-  desktop: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-  onToday: () => void;
-  onDate: (date: string) => void;
-  onView: (view: CalendarViewName) => void;
+  title: string
+  date: string
+  view: string
+  desktop: boolean
+  onPrevious: () => void
+  onNext: () => void
+  onToday: () => void
+  onDate: (date: string) => void
+  onView: (view: CalendarViewName) => void
 }) {
   return (
     <section
       aria-label="Navegação do calendário"
       className="space-y-3 rounded-xl border border-border bg-white p-4"
     >
-      <h2 aria-live="polite" className="break-words text-lg font-semibold first-letter:uppercase">
-        {title || "Calendário"}
+      <h2
+        aria-live="polite"
+        className="break-words text-lg font-semibold first-letter:uppercase"
+      >
+        {title || 'Calendário'}
       </h2>
       <div className="flex flex-wrap items-end gap-2">
         <button
@@ -42,7 +41,11 @@ export function CalendarToolbar({
         >
           Anterior
         </button>
-        <button type="button" className={calendarControl} onClick={onToday}>
+        <button
+          type="button"
+          className={calendarControl}
+          onClick={onToday}
+        >
           Hoje
         </button>
         <button
@@ -61,7 +64,7 @@ export function CalendarToolbar({
             value={date}
             className={`${inputClass} mt-1`}
             onChange={(e) => {
-              if (e.target.value) onDate(e.target.value);
+              if (e.target.value) onDate(e.target.value)
             }}
           />
         </label>
@@ -74,9 +77,12 @@ export function CalendarToolbar({
             onChange={(e) => onView(e.target.value as CalendarViewName)}
           >
             {Object.entries(viewLabels)
-              .filter(([name]) => desktop || name !== "timeGridWeek")
+              .filter(([name]) => desktop || name !== 'timeGridWeek')
               .map(([name, label]) => (
-                <option key={name} value={name}>
+                <option
+                  key={name}
+                  value={name}
+                >
                   {label}
                 </option>
               ))}
@@ -84,5 +90,5 @@ export function CalendarToolbar({
         </label>
       </div>
     </section>
-  );
+  )
 }

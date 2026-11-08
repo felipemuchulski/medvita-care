@@ -1,67 +1,65 @@
-import { useRef, useState, type FormEvent } from "react";
-import type { Appointment, AppointmentPayload } from "../types/appointment";
-import { defaultOffset, localInOffset, toIso } from "../lib/appointment";
+import { useRef, useState, type FormEvent } from 'react'
+import type { Appointment, AppointmentPayload } from '../types/appointment'
+import { defaultOffset, localInOffset, toIso } from '../lib/appointment'
 import {
   buttonClass,
   inputClass,
   PatientSelector,
   ProfessionalSelector,
-} from "./Selectors";
+} from './Selectors'
 export function AppointmentForm({
   clinic,
   appointment,
-  initialDate = "",
-  initialTime = "",
+  initialDate = '',
+  initialTime = '',
   pending,
   onSave,
 }: {
-  clinic: string;
-  appointment?: Appointment;
-  initialDate?: string;
-  initialTime?: string;
-  pending: boolean;
-  onSave: (payload: AppointmentPayload) => Promise<void>;
+  clinic: string
+  appointment?: Appointment
+  initialDate?: string
+  initialTime?: string
+  pending: boolean
+  onSave: (payload: AppointmentPayload) => Promise<void>
 }) {
-  const [patientId, setPatient] = useState(appointment?.patientId ?? "");
-  const [professionalId, setProfessional] = useState(
-    appointment?.professionalId ?? "",
-  );
-  const [error, setError] = useState("");
-  const lock = useRef(false);
+  const [patientId, setPatient] = useState(appointment?.patientId ?? '')
+  const [professionalId, setProfessional] = useState(appointment?.professionalId ?? '')
+  const [error, setError] = useState('')
+  const lock = useRef(false)
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (lock.current || pending) return;
-    const data = new FormData(e.currentTarget);
+    e.preventDefault()
+    if (lock.current || pending) return
+    const data = new FormData(e.currentTarget)
     try {
       if (!patientId || !professionalId)
-        throw new Error("Selecione paciente e profissional.");
+        throw new Error('Selecione paciente e profissional.')
       const scheduledAt = toIso(
-        `${String(data.get("date"))}T${String(data.get("time"))}`,
+        `${String(data.get('date'))}T${String(data.get('time'))}`,
         defaultOffset,
-      );
+      )
       if (Date.parse(scheduledAt) <= Date.now())
-        throw new Error("Escolha uma data e horário no futuro.");
-      const durationMinutes = Number(data.get("duration"));
+        throw new Error('Escolha uma data e horário no futuro.')
+      const durationMinutes = Number(data.get('duration'))
       if (
         !Number.isInteger(durationMinutes) ||
         durationMinutes < 5 ||
         durationMinutes > 480
       )
-        throw new Error("Duração deve ser um inteiro entre 5 e 480 minutos.");
-      setError("");
-      lock.current = true;
+        throw new Error('Duração deve ser um inteiro entre 5 e 480 minutos.')
+      setError('')
+      lock.current = true
       await onSave({
         patientId,
         professionalId,
         scheduledAt,
         durationMinutes,
-        reason: String(data.get("reason") ?? "").trim() || undefined,
-        notes: String(data.get("notes") ?? "").trim() || undefined,
-      });
+        reason: String(data.get('reason') ?? '').trim() || undefined,
+        notes: String(data.get('notes') ?? '').trim() || undefined,
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Verifique os campos.");
+      setError(err instanceof Error ? err.message : 'Verifique os campos.')
     } finally {
-      lock.current = false;
+      lock.current = false
     }
   }
   return (
@@ -69,7 +67,10 @@ export function AppointmentForm({
       onSubmit={(e) => void submit(e)}
       className="space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6"
     >
-      <fieldset disabled={pending} className="min-w-0 space-y-5">
+      <fieldset
+        disabled={pending}
+        className="min-w-0 space-y-5"
+      >
         {appointment ? (
           <p className="break-words">
             {appointment.patient.name} · {appointment.professional.user.name}
@@ -137,7 +138,11 @@ export function AppointmentForm({
           <>
             <label className="block">
               Motivo da consulta
-              <input name="reason" maxLength={500} className={inputClass} />
+              <input
+                name="reason"
+                maxLength={500}
+                className={inputClass}
+              />
             </label>
             <label className="block">
               Observações
@@ -151,7 +156,10 @@ export function AppointmentForm({
           </>
         )}
         {error && (
-          <p role="alert" className="text-red-800">
+          <p
+            role="alert"
+            className="text-red-800"
+          >
             {error}
           </p>
         )}
@@ -161,12 +169,12 @@ export function AppointmentForm({
           disabled={pending}
         >
           {pending
-            ? "Salvando..."
+            ? 'Salvando...'
             : appointment
-              ? "Salvar reagendamento"
-              : "Criar agendamento"}
+              ? 'Salvar reagendamento'
+              : 'Criar agendamento'}
         </button>
       </fieldset>
     </form>
-  );
+  )
 }

@@ -1,57 +1,50 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router";
-import {
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-  ShieldCheck,
-  CalendarDays,
-} from "lucide-react";
-import { isApiError } from "../../../api/api-error";
-import { useAuth } from "../../../hooks/use-auth";
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, CalendarDays } from 'lucide-react'
+import { isApiError } from '../../../api/api-error'
+import { useAuth } from '../../../hooks/use-auth'
 
 interface LoginLocationState {
   from?: {
-    pathname: string;
-    search?: string;
-    hash?: string;
-  };
-  notice?: string;
+    pathname: string
+    search?: string
+    hash?: string
+  }
+  notice?: string
 }
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const locationState = location.state as LoginLocationState | null;
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const locationState = location.state as LoginLocationState | null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setIsSubmitting(true);
+    event.preventDefault()
+    setError('')
+    setIsSubmitting(true)
 
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "");
+    const formData = new FormData(event.currentTarget)
+    const email = String(formData.get('email') ?? '').trim()
+    const password = String(formData.get('password') ?? '')
 
     try {
-      await login({ email, password });
+      await login({ email, password })
       const destination = locationState?.from
-        ? `${locationState.from.pathname}${locationState.from.search ?? ""}${locationState.from.hash ?? ""}`
-        : "/";
-      navigate(destination, { replace: true });
+        ? `${locationState.from.pathname}${locationState.from.search ?? ''}${locationState.from.hash ?? ''}`
+        : '/'
+      navigate(destination, { replace: true })
     } catch (requestError: unknown) {
       setError(
         isApiError(requestError)
           ? requestError.message
-          : "Não foi possível entrar. Tente novamente.",
-      );
+          : 'Não foi possível entrar. Tente novamente.',
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
@@ -76,8 +69,8 @@ export default function LoginPage() {
             </h2>
 
             <p className="text-base leading-relaxed text-primary-light">
-              Gerencie pacientes, agendamentos, consultas e prontuários em uma
-              plataforma desenvolvida para profissionais de oftalmologia.
+              Gerencie pacientes, agendamentos, consultas e prontuários em uma plataforma
+              desenvolvida para profissionais de oftalmologia.
             </p>
 
             <div className="flex items-center gap-3 rounded-xl bg-white/10 p-4">
@@ -101,9 +94,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="text-xl font-bold text-primary-dark">
-                Medvita Care
-              </h1>
+              <h1 className="text-xl font-bold text-primary-dark">Medvita Care</h1>
               <p className="text-xs text-text-secondary">Gestão clínica</p>
             </div>
           </div>
@@ -131,7 +122,11 @@ export default function LoginPage() {
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5" aria-busy={isSubmitting}>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+            aria-busy={isSubmitting}
+          >
             <div className="space-y-2">
               <label
                 htmlFor="email"
@@ -155,7 +150,7 @@ export default function LoginPage() {
                   placeholder="seu@email.com"
                   required
                   disabled={isSubmitting}
-                  aria-describedby={error ? "login-error" : undefined}
+                  aria-describedby={error ? 'login-error' : undefined}
                   className="min-h-12 w-full rounded-lg border border-border bg-white py-3 pl-12 pr-4 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -179,12 +174,12 @@ export default function LoginPage() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Digite sua senha"
                   required
                   disabled={isSubmitting}
-                  aria-describedby={error ? "login-error" : undefined}
+                  aria-describedby={error ? 'login-error' : undefined}
                   className="min-h-12 w-full rounded-lg border border-border bg-white py-3 pl-12 pr-12 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
                 />
 
@@ -192,7 +187,7 @@ export default function LoginPage() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   aria-pressed={showPassword}
                   className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-text-secondary hover:bg-background hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
@@ -206,7 +201,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="flex min-h-12 w-full items-center justify-center rounded-lg bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
-              {isSubmitting ? "Entrando..." : "Entrar"}
+              {isSubmitting ? 'Entrando...' : 'Entrar'}
             </button>
 
             {error && (
@@ -226,5 +221,5 @@ export default function LoginPage() {
         </main>
       </div>
     </div>
-  );
+  )
 }

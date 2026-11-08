@@ -59,7 +59,10 @@ export default function ChangePasswordPage() {
         className="space-y-5 rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6"
       >
         <div className="space-y-2">
-          <label htmlFor="currentPassword" className="block text-sm font-medium">
+          <label
+            htmlFor="currentPassword"
+            className="block text-sm font-medium"
+          >
             Senha atual
           </label>
           <input
@@ -74,7 +77,10 @@ export default function ChangePasswordPage() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="newPassword" className="block text-sm font-medium">
+          <label
+            htmlFor="newPassword"
+            className="block text-sm font-medium"
+          >
             Nova senha
           </label>
           <input
@@ -91,7 +97,10 @@ export default function ChangePasswordPage() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium"
+          >
             Confirmar nova senha
           </label>
           <input
@@ -108,7 +117,10 @@ export default function ChangePasswordPage() {
         </div>
 
         {error && (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <p
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          >
             {error}
           </p>
         )}

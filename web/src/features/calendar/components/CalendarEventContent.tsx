@@ -1,17 +1,19 @@
-import type { EventDisplayInfo } from "@fullcalendar/react";
+import type { EventDisplayInfo } from '@fullcalendar/react'
 export function CalendarEventContent(info: EventDisplayInfo) {
-  if (info.view.type === "dayGridMonth") {
+  if (info.view.type === 'dayGridMonth') {
     return (
       <div className="medvita-month-event">
-        <span className="medvita-month-dot" aria-hidden="true">
+        <span
+          className="medvita-month-dot"
+          aria-hidden="true"
+        >
           ●
         </span>
         <span className="medvita-month-label">
-          {info.timeText} {info.event.title} ·{" "}
-          {info.event.extendedProps.statusLabel}
+          {info.timeText} {info.event.title} · {info.event.extendedProps.statusLabel}
         </span>
       </div>
-    );
+    )
   }
   return (
     <div className="medvita-event-content">
@@ -21,5 +23,5 @@ export function CalendarEventContent(info: EventDisplayInfo) {
       <span>{info.event.extendedProps.professional}</span>
       <span>{info.event.extendedProps.statusLabel}</span>
     </div>
-  );
+  )
 }

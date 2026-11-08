@@ -19,34 +19,106 @@ export default function App() {
   return (
     <Routes>
       <Route element={<PublicOnlyRoute />}>
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={<LoginPage />}
+        />
       </Route>
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="/pacientes" element={<PatientsPage />} />
-          <Route path="/pacientes/novo" element={<CreatePatientPage />} />
-          <Route path="/pacientes/:patientId" element={<PatientDetailsPage />} />
-          <Route path="/pacientes/:patientId/editar" element={<EditPatientPage />} />
-          <Route path="/agendamentos" element={<AppointmentsPage />} />
-          <Route path="/agendamentos/novo" element={<AppointmentsPage />} />
-          <Route path="/agendamentos/:appointmentId" element={<AppointmentsPage />} />
-          <Route path="/agendamentos/:appointmentId/reagendar" element={<AppointmentsPage />} />
-          <Route path="/calendario" element={<Suspense fallback={<p role="status">Carregando calendário...</p>}><CalendarPage /></Suspense>} />
-          <Route path="/profissionais" element={<ProfessionalsPage />} />
-          <Route path="/profissionais/novo" element={<ProfessionalsPage />} />
-          <Route path="/profissionais/:professionalId" element={<ProfessionalsPage />} />
-          <Route path="/profissionais/:professionalId/editar" element={<ProfessionalsPage />} />
-          <Route path="/prontuarios" element={<ModulePage title="Prontuários" />} />
-          <Route path="/exames" element={<ModulePage title="Exames" />} />
-          <Route path="/clinicas" element={<ModulePage title="Clínicas" />} />
-          <Route path="/usuarios" element={<ModulePage title="Usuários" />} />
-          <Route path="/alterar-senha" element={<ChangePasswordPage />} />
+          <Route
+            index
+            element={<DashboardPage />}
+          />
+          <Route
+            path="/pacientes"
+            element={<PatientsPage />}
+          />
+          <Route
+            path="/pacientes/novo"
+            element={<CreatePatientPage />}
+          />
+          <Route
+            path="/pacientes/:patientId"
+            element={<PatientDetailsPage />}
+          />
+          <Route
+            path="/pacientes/:patientId/editar"
+            element={<EditPatientPage />}
+          />
+          <Route
+            path="/agendamentos"
+            element={<AppointmentsPage />}
+          />
+          <Route
+            path="/agendamentos/novo"
+            element={<AppointmentsPage />}
+          />
+          <Route
+            path="/agendamentos/:appointmentId"
+            element={<AppointmentsPage />}
+          />
+          <Route
+            path="/agendamentos/:appointmentId/reagendar"
+            element={<AppointmentsPage />}
+          />
+          <Route
+            path="/calendario"
+            element={
+              <Suspense fallback={<p role="status">Carregando calendário...</p>}>
+                <CalendarPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/profissionais"
+            element={<ProfessionalsPage />}
+          />
+          <Route
+            path="/profissionais/novo"
+            element={<ProfessionalsPage />}
+          />
+          <Route
+            path="/profissionais/:professionalId"
+            element={<ProfessionalsPage />}
+          />
+          <Route
+            path="/profissionais/:professionalId/editar"
+            element={<ProfessionalsPage />}
+          />
+          <Route
+            path="/prontuarios"
+            element={<ModulePage title="Prontuários" />}
+          />
+          <Route
+            path="/exames"
+            element={<ModulePage title="Exames" />}
+          />
+          <Route
+            path="/clinicas"
+            element={<ModulePage title="Clínicas" />}
+          />
+          <Route
+            path="/usuarios"
+            element={<ModulePage title="Usuários" />}
+          />
+          <Route
+            path="/alterar-senha"
+            element={<ChangePasswordPage />}
+          />
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
     </Routes>
   )
 }

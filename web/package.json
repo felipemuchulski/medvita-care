@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.tsx\"",
+    "format:check": "prettier --check \"src/**/*.tsx\""
   },
   "dependencies": {
     "@fullcalendar/react": "^7.1.4",
@@ -35,6 +37,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4",

@@ -1,4 +1,3 @@
-
 import { KeyRound, LogOut, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
@@ -9,18 +8,16 @@ interface HeaderProps {
   onOpenMenu: () => void
 }
 
-export default function Header({
-  onOpenMenu,
-}: HeaderProps) {
-  const location = useLocation();
-  const { logout, user } = useAuth();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isUserCardOpen, setIsUserCardOpen] = useState(false);
+export default function Header({ onOpenMenu }: HeaderProps) {
+  const location = useLocation()
+  const { logout, user } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isUserCardOpen, setIsUserCardOpen] = useState(false)
 
   const currentPage = navigationItems.find(
     (item) =>
       item.path === location.pathname ||
-      (item.path !== '/' && location.pathname.startsWith(`${item.path}/`))
+      (item.path !== '/' && location.pathname.startsWith(`${item.path}/`)),
   )
 
   return (
@@ -43,7 +40,7 @@ export default function Header({
 
       <div className="flex items-center gap-1 sm:gap-2">
         <div
-          className='relative'
+          className="relative"
           onMouseEnter={() => setIsUserCardOpen(true)}
           onMouseLeave={() => setIsUserCardOpen(false)}
           onBlur={(event) => {
@@ -53,44 +50,46 @@ export default function Header({
           }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
-              setIsUserCardOpen(false);
+              setIsUserCardOpen(false)
             }
           }}
         >
-
           <button
-            type='button'
+            type="button"
             aria-expanded={isUserCardOpen}
-            aria-controls='user-card'
+            aria-controls="user-card"
             onClick={() => setIsUserCardOpen(true)}
-            className='rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-primary-light'
-          > Olá!, {user?.name}</button>
+            className="rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-primary-light"
+          >
+            {' '}
+            Olá!, {user?.name}
+          </button>
 
-         {isUserCardOpen && (
-          <div
-            id="user-card"
-            className='absolute right-0 top-full z-50 w-72 pt-2'
-          > 
-            <div className='rounded-xl border border-border bg-white p-4 shadow-lg'>
-              <p className='wrap-break-words font-semibold text-text-primary'>
-                {user?.name}
-              </p>
+          {isUserCardOpen && (
+            <div
+              id="user-card"
+              className="absolute right-0 top-full z-50 w-72 pt-2"
+            >
+              <div className="rounded-xl border border-border bg-white p-4 shadow-lg">
+                <p className="wrap-break-words font-semibold text-text-primary">
+                  {user?.name}
+                </p>
 
-              <p className='mt-1 wrap-break-words text-sm text-text-secondary'>
-                {user?.email}
-              </p>
+                <p className="mt-1 wrap-break-words text-sm text-text-secondary">
+                  {user?.email}
+                </p>
 
-              <Link
-                to="/alterar-senha"
-                onClick={() => setIsUserCardOpen(false)}
-                className='mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary hover:bg-primary-light'> 
-                
-                <KeyRound size={18} />
-                Alterar senha de usuário
+                <Link
+                  to="/alterar-senha"
+                  onClick={() => setIsUserCardOpen(false)}
+                  className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary hover:bg-primary-light"
+                >
+                  <KeyRound size={18} />
+                  Alterar senha de usuário
                 </Link>
+              </div>
             </div>
-          </div>
-         )}
+          )}
         </div>
 
         <button

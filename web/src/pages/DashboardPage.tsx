@@ -1,10 +1,4 @@
-
-import {
-  ArrowRight,
-  CalendarClock,
-  CalendarDays,
-  UsersRound,
-} from 'lucide-react'
+import { ArrowRight, CalendarClock, CalendarDays, UsersRound } from 'lucide-react'
 import { Link } from 'react-router'
 
 const shortcuts = [
@@ -32,9 +26,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          Visão geral
-        </h1>
+        <h1 className="text-2xl font-bold text-text-primary">Visão geral</h1>
         <p className="mt-1 text-sm text-text-secondary">
           Acompanhe as principais atividades da clínica.
         </p>
@@ -53,13 +45,9 @@ export default function DashboardPage() {
                 <Icon size={24} />
               </div>
 
-              <h2 className="text-lg font-semibold text-text-primary">
-                {item.title}
-              </h2>
+              <h2 className="text-lg font-semibold text-text-primary">{item.title}</h2>
 
-              <p className="mt-2 text-sm text-text-secondary">
-                {item.description}
-              </p>
+              <p className="mt-2 text-sm text-text-secondary">{item.description}</p>
 
               <Link
                 to={item.path}
@@ -98,13 +86,10 @@ export default function DashboardPage() {
             className="mx-auto text-primary"
           />
 
-          <p className="mt-4 font-medium text-text-primary">
-            Agenda ainda não integrada
-          </p>
+          <p className="mt-4 font-medium text-text-primary">Agenda ainda não integrada</p>
 
           <p className="mt-2 text-sm text-text-secondary">
-            Os próximos atendimentos serão exibidos
-            aqui após a integração com a API.
+            Os próximos atendimentos serão exibidos aqui após a integração com a API.
           </p>
         </div>
       </section>

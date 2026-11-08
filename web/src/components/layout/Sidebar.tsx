@@ -1,21 +1,15 @@
-import { Eye, X } from "lucide-react";
-import { NavLink } from "react-router";
-import { navigationItems } from "../../app/navigation";
-import { useClinic } from "../../hooks/use-clinic";
+import { Eye, X } from 'lucide-react'
+import { NavLink } from 'react-router'
+import { navigationItems } from '../../app/navigation'
+import { useClinic } from '../../hooks/use-clinic'
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const {
-    memberships,
-    activeClinicId,
-    isLoading,
-    error,
-    selectClinic,
-  } = useClinic();
+  const { memberships, activeClinicId, isLoading, error, selectClinic } = useClinic()
 
   return (
     <>
@@ -37,7 +31,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           shadow-xl transition-transform duration-200
           lg:sticky lg:top-0 lg:h-screen
           lg:translate-x-0 lg:shadow-none
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         <div className="flex items-center justify-between px-5 py-6">
@@ -70,7 +64,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             Clínica ativa
           </label>
           {isLoading ? (
-            <p className="text-sm text-primary-light" role="status">
+            <p
+              className="text-sm text-primary-light"
+              role="status"
+            >
               Carregando clínicas...
             </p>
           ) : memberships.length > 0 ? (
@@ -82,11 +79,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               ) : (
                 <select
                   id="active-clinic"
-                  value={activeClinicId ?? ""}
+                  value={activeClinicId ?? ''}
                   onChange={(event) => selectClinic(event.target.value)}
                   className="min-h-11 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none  focus:border-white focus:ring-2 focus:ring-white/30"
                 >
-                  <option value="" disabled className="text-slate-900">
+                  <option
+                    value=""
+                    disabled
+                    className="text-slate-900"
+                  >
                     Selecione uma clínica
                   </option>
 
@@ -106,7 +107,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <p className="text-sm text-primary-light">Nenhuma clínica autorizada.</p>
           )}
           {error && (
-            <p role="alert" className="mt-2 text-xs text-red-200">
+            <p
+              role="alert"
+              className="mt-2 text-xs text-red-200"
+            >
               {error}
             </p>
           )}
@@ -122,13 +126,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className="space-y-1">
             {navigationItems.map((item) => {
-              const Icon = item.icon;
+              const Icon = item.icon
 
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === "/"}
+                  end={item.path === '/'}
                   onClick={onClose}
                   className={({ isActive }) => `
                     flex items-center gap-3 rounded-lg
@@ -136,15 +140,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     transition-colors
                     ${
                       isActive
-                        ? "bg-white/15 text-white"
-                        : "text-primary-light hover:bg-white/10 hover:text-white"
+                        ? 'bg-white/15 text-white'
+                        : 'text-primary-light hover:bg-white/10 hover:text-white'
                     }
                   `}
                 >
                   <Icon size={19} />
                   <span>{item.label}</span>
                 </NavLink>
-              );
+              )
             })}
           </div>
         </nav>
@@ -154,5 +158,5 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       </aside>
     </>
-  );
+  )
 }

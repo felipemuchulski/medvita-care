@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
 import Sidebar from './Sidebar'
@@ -29,9 +28,7 @@ export default function AppLayout() {
       />
 
       <div className="min-w-0 flex-1">
-        <Header
-          onOpenMenu={() => setIsSidebarOpen(true)}
-        />
+        <Header onOpenMenu={() => setIsSidebarOpen(true)} />
 
         <main
           id="main-content"

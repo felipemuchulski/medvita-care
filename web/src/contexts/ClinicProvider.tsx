@@ -22,10 +22,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
   })
 
   const memberships = useMemo(
-    () =>
-      user
-        ? getAllowedMemberships(user, membershipsQuery.data ?? [])
-        : [],
+    () => (user ? getAllowedMemberships(user, membershipsQuery.data ?? []) : []),
     [membershipsQuery.data, user],
   )
 

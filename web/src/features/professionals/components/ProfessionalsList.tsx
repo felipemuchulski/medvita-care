@@ -1,38 +1,32 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import {
-  buttonClass,
-  inputClass,
-} from "../../appointments/components/Selectors";
-import { useProfessionals } from "../hooks/use-professionals";
-import {
-  professionalError,
-  searchProfessionals,
-  states,
-} from "../lib/professional";
+import { useState } from 'react'
+import { Link } from 'react-router'
+import { buttonClass, inputClass } from '../../appointments/components/Selectors'
+import { useProfessionals } from '../hooks/use-professionals'
+import { professionalError, searchProfessionals, states } from '../lib/professional'
 
 export function ProfessionalsList({
   clinic,
   manage,
   ownUser,
 }: {
-  clinic: string;
-  manage: boolean;
-  ownUser?: string;
+  clinic: string
+  manage: boolean
+  ownUser?: string
 }) {
-  const query = useProfessionals(clinic);
-  const [search, setSearch] = useState("");
-  const [state, setState] = useState("");
-  const profiles = (query.data ?? []).filter(
-    (p) => !ownUser || p.userId === ownUser,
-  );
-  const rows = searchProfessionals(profiles, search, state);
+  const query = useProfessionals(clinic)
+  const [search, setSearch] = useState('')
+  const [state, setState] = useState('')
+  const profiles = (query.data ?? []).filter((p) => !ownUser || p.userId === ownUser)
+  const rows = searchProfessionals(profiles, search, state)
   return (
     <div className="min-w-0 space-y-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Profissionais</h1>
         {manage && (
-          <Link className={buttonClass} to="/profissionais/novo">
+          <Link
+            className={buttonClass}
+            to="/profissionais/novo"
+          >
             Cadastrar profissional
           </Link>
         )}
@@ -60,7 +54,10 @@ export function ProfessionalsList({
           >
             <option value="">Todas</option>
             {states.map((s) => (
-              <option key={s} value={s}>
+              <option
+                key={s}
+                value={s}
+              >
                 {s}
               </option>
             ))}
@@ -70,8 +67,8 @@ export function ProfessionalsList({
           type="button"
           className={`${buttonClass} justify-self-start`}
           onClick={() => {
-            setSearch("");
-            setState("");
+            setSearch('')
+            setState('')
           }}
         >
           Limpar filtros
@@ -85,19 +82,25 @@ export function ProfessionalsList({
           className="space-y-3 rounded-lg bg-red-50 p-4 text-red-900"
         >
           <p>{professionalError(query.error)}</p>
-          <button className={buttonClass} onClick={() => void query.refetch()}>
+          <button
+            className={buttonClass}
+            onClick={() => void query.refetch()}
+          >
             Tentar novamente
           </button>
         </div>
       ) : (
         <>
-          <p role="status" className="text-sm text-text-secondary">
+          <p
+            role="status"
+            className="text-sm text-text-secondary"
+          >
             {rows.length} profissional(is) encontrado(s) na clínica.
           </p>
           {!rows.length ? (
             <p className="rounded-xl border border-dashed border-border p-6">
-              Nenhum profissional encontrado. Ajuste a busca ou verifique os
-              vínculos ativos da clínica.
+              Nenhum profissional encontrado. Ajuste a busca ou verifique os vínculos
+              ativos da clínica.
             </p>
           ) : (
             <>
@@ -111,7 +114,7 @@ export function ProfessionalsList({
                     <p>
                       CRM {p.crm}/{p.crmState}
                     </p>
-                    <p>RQE: {p.rqe || "Não informado"}</p>
+                    <p>RQE: {p.rqe || 'Não informado'}</p>
                     <p>{p.specialty}</p>
                     <Link
                       className={`${buttonClass} w-full`}
@@ -134,30 +137,31 @@ export function ProfessionalsList({
                 <table className="w-full table-fixed text-left">
                   <thead>
                     <tr>
-                      {["Nome", "CRM/UF", "RQE", "Especialidade", "Ações"].map(
-                        (h) => (
-                          <th key={h} scope="col" className="p-3">
-                            {h}
-                          </th>
-                        ),
-                      )}
+                      {['Nome', 'CRM/UF', 'RQE', 'Especialidade', 'Ações'].map((h) => (
+                        <th
+                          key={h}
+                          scope="col"
+                          className="p-3"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((p) => (
-                      <tr key={p.id} className="border-t border-border">
-                        <td className="p-3 [overflow-wrap:anywhere]">
-                          {p.user.name}
-                        </td>
+                      <tr
+                        key={p.id}
+                        className="border-t border-border"
+                      >
+                        <td className="p-3 [overflow-wrap:anywhere]">{p.user.name}</td>
                         <td className="p-3 [overflow-wrap:anywhere]">
                           {p.crm}/{p.crmState}
                         </td>
                         <td className="p-3 [overflow-wrap:anywhere]">
-                          {p.rqe || "Não informado"}
+                          {p.rqe || 'Não informado'}
                         </td>
-                        <td className="p-3 [overflow-wrap:anywhere]">
-                          {p.specialty}
-                        </td>
+                        <td className="p-3 [overflow-wrap:anywhere]">{p.specialty}</td>
                         <td className="p-3">
                           <div className="flex flex-wrap gap-2">
                             <Link
@@ -186,5 +190,5 @@ export function ProfessionalsList({
         </>
       )}
     </div>
-  );
+  )
 }
