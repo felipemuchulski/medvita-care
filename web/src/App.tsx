@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import ModulePage from './pages/ModulePage'
 import ProfessionalsPage from './features/professionals/pages/ProfessionalsPage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
+const ExamsPage = lazy(() => import('./features/exams/pages/ExamsPage'))
 const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
 const MedicalRecordsPage = lazy(
   () => import('./features/medical-records/pages/MedicalRecordsPage'),
@@ -117,7 +118,27 @@ export default function App() {
           />
           <Route
             path="/exames"
-            element={<ModulePage title="Exames" />}
+            element={
+              <Suspense fallback={<p role="status">Carregando exames...</p>}>
+                <ExamsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/exames/novo"
+            element={
+              <Suspense fallback={<p role="status">Carregando exames...</p>}>
+                <ExamsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/exames/:examId"
+            element={
+              <Suspense fallback={<p role="status">Carregando exame...</p>}>
+                <ExamsPage />
+              </Suspense>
+            }
           />
           <Route
             path="/clinicas"

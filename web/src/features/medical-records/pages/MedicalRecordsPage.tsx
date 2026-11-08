@@ -96,12 +96,20 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
             : 'Consulte seus atendimentos ou localize um paciente para abrir o histórico clínico.'}
         </p>
         {history && (
-          <Link
-            className={buttonClass}
-            to="/prontuarios"
-          >
-            Voltar aos prontuários
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              className={buttonClass}
+              to="/prontuarios"
+            >
+              Voltar aos prontuários
+            </Link>
+            <Link
+              className={buttonClass}
+              to={`/exames?patientId=${patientId}`}
+            >
+              Consultar exames do paciente
+            </Link>
+          </div>
         )}
       </header>
       {history && (

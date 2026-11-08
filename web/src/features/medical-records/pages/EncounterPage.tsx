@@ -58,6 +58,12 @@ function Detail({ clinic, user, id }: { clinic: string; user: string; id: string
       >
         Histórico do paciente
       </Link>
+      <Link
+        className={buttonClass}
+        to={`/exames?patientId=${record.patientId}&encounterId=${record.id}`}
+      >
+        Exames deste atendimento
+      </Link>
       <header className="space-y-3 rounded-xl border border-border bg-white p-4 sm:p-5">
         <div className="flex min-w-0 flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <h1 className="min-w-0 break-words text-xl font-bold sm:text-2xl">

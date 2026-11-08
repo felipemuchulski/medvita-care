@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type Ref } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { patientsApi } from '../../patients/api/patients-api'
 import { useProfessionals } from '../../professionals/hooks/use-professionals'
@@ -15,11 +15,17 @@ export function PatientSelector({
   value,
   onChange,
   activeOnly = false,
+  invalid = false,
+  describedBy,
+  selectRef,
 }: {
   clinic: string
   value: string
   onChange: (id: string) => void
   activeOnly?: boolean
+  invalid?: boolean
+  describedBy?: string
+  selectRef?: Ref<HTMLSelectElement>
 }) {
   const patientId = useId()
   const searchId = useId()
@@ -77,6 +83,9 @@ export function PatientSelector({
         <select
           id={patientId}
           aria-label="Paciente"
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          ref={selectRef}
           className={inputClass}
           value={value}
           onChange={(e) => {
