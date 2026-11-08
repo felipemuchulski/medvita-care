@@ -34,10 +34,13 @@ export default function Header({ onOpenMenu }: HeaderProps) {
         </button>
 
         <h2 className="text-lg font-semibold text-text-primary">
-          {location.pathname.startsWith('/minha-clinica') ||
-          (currentPage?.path === '/clinicas' && !user?.isSystemAdmin)
-            ? 'Minha clínica'
-            : (currentPage?.label ?? 'Medvita Care')}
+          {location.pathname === '/usuarios-clinica' ||
+          /^\/clinicas\/[^/]+\/usuarios$/.test(location.pathname)
+            ? 'Equipe da clínica'
+            : location.pathname.startsWith('/minha-clinica') ||
+                (currentPage?.path === '/clinicas' && !user?.isSystemAdmin)
+              ? 'Minha clínica'
+              : (currentPage?.label ?? 'Medvita Care')}
         </h2>
       </div>
 

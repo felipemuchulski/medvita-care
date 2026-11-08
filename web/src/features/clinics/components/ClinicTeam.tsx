@@ -1,6 +1,8 @@
+import { Link } from 'react-router'
+import { ClinicMemberList } from '../../clinic-users/components/ClinicMemberList'
 import { buttonClass } from '../../appointments/components/Selectors'
 import { useClinicTeam } from '../hooks/use-clinics'
-import { clinicError, clinicRoleLabels } from '../lib/clinic'
+import { clinicError } from '../lib/clinic'
 export function ClinicTeam({ user, id }: { user: string; id: string }) {
   const query = useClinicTeam(user, id)
   return (
@@ -33,33 +35,18 @@ export function ClinicTeam({ user, id }: { user: string; id: string }) {
       ) : !query.data.length ? (
         <p>Nenhum usuário vinculado a esta clínica.</p>
       ) : (
-        <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
-          {query.data.map((member) => (
-            <li
-              key={member.id}
-              className="min-w-0 space-y-1 rounded-lg border border-border p-3 text-sm"
-            >
-              <p className="font-medium">
-                {member.user?.name || 'Usuário não disponível'}
-              </p>
-              <p className="[overflow-wrap:anywhere]">
-                {member.user?.email || 'E-mail não informado'}
-              </p>
-              <p>
-                {clinicRoleLabels[member.role]} · Vínculo{' '}
-                {member.active ? 'ativo' : 'inativo'}
-              </p>
-              {member.user && !member.user.active && (
-                <p className="text-text-secondary">Usuário inativo</p>
-              )}
-            </li>
-          ))}
-        </ul>
+        <ClinicMemberList
+          members={query.data}
+          clinic={id}
+          actor={user}
+        />
       )}
-      <p className="text-sm text-text-secondary">
-        A consulta da equipe está disponível aqui. O gerenciamento de vínculos será
-        tratado no módulo de Usuários.
-      </p>
+      <Link
+        className={buttonClass}
+        to={`/clinicas/${id}/usuarios`}
+      >
+        Abrir equipe e ações autorizadas
+      </Link>
     </section>
   )
 }

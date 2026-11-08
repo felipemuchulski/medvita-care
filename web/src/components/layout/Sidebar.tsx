@@ -149,7 +149,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 return (
                   <NavLink
                     key={item.path}
-                    to={item.path}
+                    to={
+                      item.path === '/usuarios' && !user?.isSystemAdmin
+                        ? '/usuarios-clinica'
+                        : item.path
+                    }
                     end={item.path === '/'}
                     onClick={onClose}
                     className={({ isActive }) => `
@@ -165,9 +169,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   >
                     <Icon size={19} />
                     <span>
-                      {item.path === '/clinicas' && !user?.isSystemAdmin
-                        ? 'Minha clínica'
-                        : item.label}
+                      {item.path === '/usuarios' && !user?.isSystemAdmin
+                        ? 'Equipe da clínica'
+                        : item.path === '/clinicas' && !user?.isSystemAdmin
+                          ? 'Minha clínica'
+                          : item.label}
                     </span>
                   </NavLink>
                 )

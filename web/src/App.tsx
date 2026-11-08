@@ -6,9 +6,12 @@ import ProtectedRoute from './features/auth/routes/ProtectedRoute'
 import PublicOnlyRoute from './features/auth/routes/PublicOnlyRoute'
 import AppLayout from './components/layout/AppLayout'
 import DashboardPage from './pages/DashboardPage'
-import ModulePage from './pages/ModulePage'
 import ProfessionalsPage from './features/professionals/pages/ProfessionalsPage'
 import AppointmentsPage from './features/appointments/pages/AppointmentsPage'
+const UsersPage = lazy(() => import('./features/users/pages/UsersPage'))
+const ClinicUsersPage = lazy(
+  () => import('./features/clinic-users/pages/ClinicUsersPage'),
+)
 const ClinicsPage = lazy(() => import('./features/clinics/pages/ClinicsPage'))
 const ExamsPage = lazy(() => import('./features/exams/pages/ExamsPage'))
 const CalendarPage = lazy(() => import('./features/calendar/pages/CalendarPage'))
@@ -183,7 +186,51 @@ export default function App() {
           />
           <Route
             path="/usuarios"
-            element={<ModulePage title="Usuários" />}
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <UsersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/usuarios/novo"
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <UsersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/usuarios/:userId"
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <UsersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/usuarios/:userId/editar"
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <UsersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/usuarios-clinica"
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <ClinicUsersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/clinicas/:clinicId/usuarios"
+            element={
+              <Suspense fallback={<p role="status">Carregando usuários...</p>}>
+                <ClinicUsersPage />
+              </Suspense>
+            }
           />
           <Route
             path="/alterar-senha"
