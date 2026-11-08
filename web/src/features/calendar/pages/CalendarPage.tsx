@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useSearchParams } from "react-router";
 import { useClinic } from "../../../hooks/use-clinic";
 import {
@@ -7,7 +8,6 @@ import {
 import { canManage, statusLabels } from "../../appointments/lib/appointment";
 import type { AppointmentStatus } from "../../appointments/types/appointment";
 import { FullCalendarView } from "../components/FullCalendarView";
-import { calendarControl } from "../types/calendar";
 
 export default function CalendarPage() {
   const clinic = useClinic();
@@ -28,6 +28,7 @@ export default function CalendarPage() {
   );
 }
 function Calendar({ clinic, manage }: { clinic: string; manage: boolean }) {
+  const statusId = useId();
   const [params, setParams] = useSearchParams();
   const requestedStatus = params.get("status") ?? "";
   const status = Object.hasOwn(statusLabels, requestedStatus)
@@ -60,28 +61,29 @@ function Calendar({ clinic, manage }: { clinic: string; manage: boolean }) {
             value={professionalId}
             onChange={(id) => update({ professional: id })}
           />
-          <label className="flex min-w-0 flex-col gap-2">
-            <span className="font-medium">Status</span>
-            <select
-              className={inputClass}
-              value={status ?? ""}
-              onChange={(e) => update({ status: e.target.value })}
-            >
-              <option value="">Todos</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className={`${calendarControl} justify-self-start`}
-            onClick={() => update({ professional: "", status: "" })}
-          >
-            Limpar filtros
-          </button>
+          <div className="min-w-0 space-y-2 md:col-span-2">
+            <label htmlFor={statusId} className="block font-medium">Status</label>
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <select
+                id={statusId}
+                className={`${inputClass} flex-1`}
+                value={status ?? ""}
+                onChange={(e) => update({ status: e.target.value })}
+              >
+                <option value="">Todos</option>
+                {Object.entries(statusLabels).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="relative inline-flex h-[30px] shrink-0 items-center justify-center whitespace-nowrap rounded border border-primary bg-white px-2 py-0 text-xs leading-none font-medium text-primary after:absolute after:inset-x-0 after:-inset-y-[7px] after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-3"
+                onClick={() => update({ professional: "", status: "" })}
+              >
+                Limpar filtros
+              </button>
+            </div>
+          </div>
         </div>
       </details>
       
