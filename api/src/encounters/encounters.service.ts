@@ -126,7 +126,7 @@ export class EncountersService {
     const builder = this.authorizedQuery(clinicId, currentUser.sub);
     this.applyFilters(builder, query);
     const [data, total] = await builder
-      .orderBy("encounter.started_at", "DESC")
+      .orderBy("encounter.startedAt", "DESC")
       .addOrderBy("encounter.id", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
@@ -180,7 +180,7 @@ export class EncountersService {
     );
     this.applyFilters(builder, { ...query, patientId: undefined });
     const [data, total] = await builder
-      .orderBy("encounter.started_at", "DESC")
+      .orderBy("encounter.startedAt", "DESC")
       .addOrderBy("encounter.id", "DESC")
       .skip((page - 1) * limit)
       .take(limit)
