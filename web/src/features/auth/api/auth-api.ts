@@ -6,29 +6,35 @@ import type {
   MessageResponse,
 } from '../types/auth'
 
+const sessionOptions = {
+  credentials: 'include' as const,
+  headers: { 'X-Medvita-Session': '1' },
+}
+
 export const authApi = {
   login(payload: LoginRequest): Promise<AuthResponse> {
     return httpClient.post<AuthResponse, LoginRequest>('/auth/login', payload, {
+      ...sessionOptions,
       authenticated: false,
     })
   },
 
-  refresh(refreshToken: string): Promise<AuthResponse> {
-    return httpClient.post<AuthResponse, { refreshToken: string }>(
-      '/auth/refresh',
-      { refreshToken },
-      { authenticated: false },
-    )
+  refresh(): Promise<AuthResponse> {
+    return httpClient.post<AuthResponse>('/auth/refresh', undefined, {
+      ...sessionOptions,
+      authenticated: false,
+    })
   },
 
   logout(): Promise<MessageResponse> {
-    return httpClient.post<MessageResponse>('/auth/logout')
+    return httpClient.post<MessageResponse>('/auth/logout', undefined, sessionOptions)
   },
 
   changePassword(payload: ChangePasswordRequest): Promise<MessageResponse> {
     return httpClient.patch<MessageResponse, ChangePasswordRequest>(
       '/auth/change-password',
       payload,
+      sessionOptions,
     )
   },
 }

@@ -4,6 +4,8 @@ import { useAuth } from '../../../hooks/use-auth'
 export default function PublicOnlyRoute() {
   const { status } = useAuth()
 
+  if (status === 'loading') return <p role="status">Recuperando sessão…</p>
+
   if (status === 'authenticated')
     return (
       <Navigate

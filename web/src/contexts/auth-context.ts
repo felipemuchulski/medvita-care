@@ -5,7 +5,7 @@ import type {
   LoginRequest,
 } from '../features/auth/types/auth'
 
-export type AuthStatus = 'authenticated' | 'unauthenticated'
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
 export interface AuthContextValue {
   status: AuthStatus
