@@ -79,3 +79,8 @@ Reutilizados: layout, cliente HTTP, autenticação/contexto, TanStack Query, Rea
 - Remoção de email e edição de documento/CEP/cidade exigem decisão de contrato no backend para expansão da interface.
 - CRUD completo de equipe/usuários e configurações de timezone/agenda não foram adicionados.
 - Zoom nativo, dispositivos físicos, Safari e Firefox permanecem pendentes. Os alvos de toque dos controles novos seguem o mínimo de 44px.
+
+
+## Integração posterior com Usuários
+
+A consulta de equipe agora reutiliza ClinicMemberList e oferece acesso a /clinicas/:clinicId/usuarios, implementado em features/clinic-users. A seção histórica acima descreve a etapa anterior, em que a equipe era apenas consultável. O gerenciamento atual respeita a clínica ativa para usuários locais; System Admin pode escolher escopo administrativo por rota. Contratos e limitações atuais em ../users/README.md.
