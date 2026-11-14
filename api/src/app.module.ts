@@ -35,6 +35,7 @@ import { connectionOptions } from "./database/connection-options";
               "DB_USERNAME",
               "DB_PASSWORD",
               "DB_NAME",
+              "DB_SSL_CA_PATH",
             ].map((key) => [key, config.get(key)]),
           ),
         ),
