@@ -1,0 +1,20 @@
+# Static React/Vite output on Hostinger. Vite copies this file to dist/.
+# Keep any existing API/proxy rules before this SPA fallback.
+RewriteEngine On
+
+# Never turn API requests into the frontend HTML document.
+RewriteRule ^api(?:/|$) - [L,NC]
+
+# Real files and directories keep their normal server behavior.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Missing chunks/static files must remain 404, rather than return HTML.
+RewriteRule ^assets(?:/|$) - [L,NC]
+RewriteRule \.[^/]+$ - [L]
+
+# Browser navigation only: preserve the URL and query string for React Router.
+RewriteCond %{REQUEST_METHOD} ^(?:GET|HEAD)$
+RewriteCond %{HTTP_ACCEPT} text/html [NC]
+RewriteRule ^ /index.html [L]

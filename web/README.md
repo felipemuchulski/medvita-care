@@ -1,5 +1,11 @@
 # React + TypeScript + Vite
 
+## Deploy do MedVita Care na Hostinger
+
+Configuração de build, fallback SPA para acesso direto/F5 e validação após deploy:
+[DEPLOY_HOSTINGER.md](./DEPLOY_HOSTINGER.md). A regra versionada em `public/.htaccess`
+é copiada pelo Vite para `dist/.htaccess` em cada build.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
