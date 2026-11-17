@@ -26,7 +26,12 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN, ClinicUserRole.RECEPTIONIST)
+  @ClinicRoles(
+    "clinicId",
+    ClinicUserRole.ADMIN,
+    ClinicUserRole.RECEPTIONIST,
+    ClinicUserRole.OPHTHALMOLOGIST,
+  )
   create(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Body() dto: CreateAppointmentDto,

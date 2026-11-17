@@ -14,6 +14,9 @@ export const statusLabels = {
 export function canManage(role: ClinicRole | null) {
   return role === "ADMIN" || role === "RECEPTIONIST";
 }
+export function canCreate(role: ClinicRole | null) {
+  return canManage(role) || role === "OPHTHALMOLOGIST";
+}
 export function canChange(a: Appointment) {
   return ["SCHEDULED", "CONFIRMED"].includes(a.status) && !a.encounter;
 }

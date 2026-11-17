@@ -48,22 +48,32 @@ export class AppointmentsService {
     dto: CreateAppointmentDto,
     currentUser: AuthenticatedUser,
   ) {
-    this.assertClinicRole(currentUser, clinicId, [
+    const role = this.assertClinicRole(currentUser, clinicId, [
       ClinicUserRole.ADMIN,
       ClinicUserRole.RECEPTIONIST,
+      ClinicUserRole.OPHTHALMOLOGIST,
     ]);
     const { start, end, durationMinutes } = this.buildPeriod(
       dto.scheduledAt,
       dto.durationMinutes ?? 30,
       true,
     );
-    await Promise.all([
+    const [, profile] = await Promise.all([
       this.patientsService.findActiveForClinic(clinicId, dto.patientId),
       this.professionalsService.findActiveForClinic(
         clinicId,
         dto.professionalId,
       ),
     ]);
+
+    if (
+      role === ClinicUserRole.OPHTHALMOLOGIST &&
+      profile.userId !== currentUser.sub
+    ) {
+      throw new ForbiddenException(
+        "O profissional só pode criar agendamentos na própria agenda.",
+      );
+    }
 
     try {
       const appointmentId =

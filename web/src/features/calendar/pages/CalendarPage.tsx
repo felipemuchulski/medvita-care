@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { useSearchParams } from 'react-router'
 import { useClinic } from '../../../hooks/use-clinic'
 import { ProfessionalSelector, inputClass } from '../../appointments/components/Selectors'
-import { canManage, statusLabels } from '../../appointments/lib/appointment'
+import { canCreate, statusLabels } from '../../appointments/lib/appointment'
 import type { AppointmentStatus } from '../../appointments/types/appointment'
 import { FullCalendarView } from '../components/FullCalendarView'
 
@@ -20,7 +20,7 @@ export default function CalendarPage() {
     <Calendar
       key={`${clinic.activeClinicId}:${clinic.activeRole}`}
       clinic={clinic.activeClinicId}
-      manage={canManage(clinic.activeRole)}
+      manage={canCreate(clinic.activeRole)}
     />
   )
 }

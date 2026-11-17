@@ -20,6 +20,7 @@ import {
   validDate,
   canChange,
   canManage,
+  canCreate,
   formatAppointment,
   statusLabels,
   toIso,
@@ -41,6 +42,7 @@ export default function AppointmentsPage() {
       key={`${activeClinicId}:${activeRole}`}
       clinic={activeClinicId}
       manage={canManage(activeRole)}
+      create={canCreate(activeRole)}
     />
   )
 }
@@ -57,7 +59,15 @@ function Frame({ children }: { children: ReactNode }) {
     </div>
   )
 }
-function AppointmentScreen({ clinic, manage }: { clinic: string; manage: boolean }) {
+function AppointmentScreen({
+  clinic,
+  manage,
+  create,
+}: {
+  clinic: string
+  manage: boolean
+  create: boolean
+}) {
   const { appointmentId = '' } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -71,7 +81,7 @@ function AppointmentScreen({ clinic, manage }: { clinic: string; manage: boolean
     return (
       <Frame>
         <h1 className="text-2xl font-bold">Novo agendamento</h1>
-        {manage ? (
+        {create ? (
           <AppointmentForm
             clinic={clinic}
             initialDate={
@@ -108,7 +118,7 @@ function AppointmentScreen({ clinic, manage }: { clinic: string; manage: boolean
     return (
       <AppointmentList
         clinic={clinic}
-        manage={manage}
+        create={create}
       />
     )
   if (detail.isPending)
@@ -241,7 +251,7 @@ function AppointmentScreen({ clinic, manage }: { clinic: string; manage: boolean
     </Frame>
   )
 }
-function AppointmentList({ clinic, manage }: { clinic: string; manage: boolean }) {
+function AppointmentList({ clinic, create }: { clinic: string; create: boolean }) {
   const [filters, setFilters] = useState<AppointmentQuery>({
     page: 1,
     limit: 20,
@@ -258,7 +268,7 @@ function AppointmentList({ clinic, manage }: { clinic: string; manage: boolean }
         <div>
           <h1 className="text-2xl font-bold">Agendamentos</h1>
         </div>
-        {manage && (
+        {create && (
           <Link
             className={buttonClass}
             to="/agendamentos/novo"
