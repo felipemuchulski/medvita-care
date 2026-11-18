@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { ClinicRoles } from "src/common/decorators/roles.decorator";
+import { Authenticated } from "src/common/decorators/authenticated.decorator";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
 import { ClinicUsersService } from "./clinic-users.service";
 import { CreateClinicUserDto } from "./dto/create-clinic-user.dto";
@@ -45,6 +46,7 @@ export class ClinicUsersController {
   }
 
   @Get("users/:userId/clinics")
+  @Authenticated()
   findByUser(
     @Param("userId", uuidPipe) userId: string,
     @CurrentUser() currentUser: AuthenticatedUser,

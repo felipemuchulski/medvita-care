@@ -11,6 +11,7 @@ import {
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { Public } from "src/common/decorators/public.decorator";
+import { Authenticated } from "src/common/decorators/authenticated.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import type { Request, Response, CookieOptions } from "express";
@@ -64,6 +65,7 @@ export class AuthController {
   }
 
   @Post("logout")
+  @Authenticated()
   logout(
     @CurrentUser() user: AuthenticatedUser,
     @Req() request: Request,
@@ -75,6 +77,7 @@ export class AuthController {
   }
 
   @Patch("change-password")
+  @Authenticated()
   async changePassword(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: ChangePasswordDto,

@@ -22,6 +22,7 @@ const { JwtAuthGuard } = require("../dist/auth/guards/jwt-auth.guard");
 const { AuthorizationGuard } = require("../dist/auth/guards/authorization.guard");
 const { BcryptService } = require("../dist/common/hashing/bcrypt.service");
 const { SystemAdmin } = require("../dist/common/decorators/system-admin.decorator");
+const { Authenticated } = require("../dist/common/decorators/authenticated.decorator");
 
 DataSource.prototype.initialize = async () => { throw new Error("Database forbidden in A06 tests"); };
 
@@ -42,6 +43,7 @@ for (const [method, routes] of [["read", sensitivePaths], ["restricted", "restri
   const descriptor = Object.getOwnPropertyDescriptor(TransportFixture.prototype, method);
   common.Get(routes)(TransportFixture.prototype, method, descriptor);
   if (method === "restricted") SystemAdmin()(TransportFixture.prototype, method, descriptor);
+  else Authenticated()(TransportFixture.prototype, method, descriptor);
 }
 
 async function fixture(t, unified, overrides = {}, httpsOptions) {

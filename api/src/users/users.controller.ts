@@ -17,6 +17,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { UpdateActiveUserDto } from "./dto/update-active.dto";
 import { UpdateUserPasswordDto } from "./dto/update-password.dto";
 import { SystemAdmin } from "src/common/decorators/system-admin.decorator";
+import { Authenticated } from "src/common/decorators/authenticated.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
 import { FindUsersQueryDto } from "./dto/find-users-query.dto";
@@ -65,6 +66,7 @@ export class UsersController {
   }
 
   @Patch(":id/password")
+  @Authenticated()
   async updatePassword(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserPasswordDto,
