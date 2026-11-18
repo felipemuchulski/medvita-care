@@ -1,4 +1,5 @@
 import type { EventDisplayInfo } from '@fullcalendar/react'
+import { pendingAppointmentLabel } from '../../appointments/lib/pending-appointment'
 export function CalendarEventContent(info: EventDisplayInfo) {
   if (info.view.type === 'dayGridMonth') {
     return (
@@ -9,6 +10,11 @@ export function CalendarEventContent(info: EventDisplayInfo) {
         >
           ●
         </span>
+        {info.event.extendedProps.pendingReview && (
+          <span className="block whitespace-normal text-xs leading-tight [overflow-wrap:anywhere]">
+            Pendente de revisão
+          </span>
+        )}
         <span className="medvita-month-label">
           {info.timeText} {info.event.title} · {info.event.extendedProps.statusLabel}
         </span>
@@ -22,6 +28,7 @@ export function CalendarEventContent(info: EventDisplayInfo) {
       </span>
       <span>{info.event.extendedProps.professional}</span>
       <span>{info.event.extendedProps.statusLabel}</span>
+      {info.event.extendedProps.pendingReview && <span>{pendingAppointmentLabel}</span>}
     </div>
   )
 }

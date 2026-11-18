@@ -1,3 +1,4 @@
+import { useOperationalClock } from '../../../hooks/use-operational-clock'
 import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
 import { PeriodFields } from '../../../components/filters/PeriodFields'
@@ -42,6 +43,7 @@ const listRules = {
 }
 
 export default function AppointmentsPage() {
+  const now = useOperationalClock()
   const { activeClinicId, activeRole, isLoading, error } = useClinic()
   if (isLoading) return <p role="status">Carregando clínica...</p>
   if (!activeClinicId || !activeRole)
@@ -55,6 +57,7 @@ export default function AppointmentsPage() {
       key={`${activeClinicId}:${activeRole}`}
       clinic={activeClinicId}
       create={canCreate(activeRole)}
+      now={now}
     />
   )
 }
@@ -82,7 +85,15 @@ function Frame({ children }: { children: ReactNode }) {
     </div>
   )
 }
-function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean }) {
+function AppointmentScreen({
+  clinic,
+  create,
+  now,
+}: {
+  clinic: string
+  create: boolean
+  now: number
+}) {
   const { user } = useAuth()
   const { activeRole, activeClinicId } = useClinic()
   const { appointmentId = '' } = useParams()
@@ -137,6 +148,7 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
       <AppointmentList
         clinic={clinic}
         create={create}
+        now={now}
       />
     )
   if (detail.isPending)
@@ -206,7 +218,11 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
         <>
           <article className="space-y-4 break-words rounded-xl border border-border bg-white p-4 sm:p-6">
             <h2 className="text-xl font-semibold">{a.patient.name}</h2>
-            <AppointmentStatusBadge status={a.status} />
+            <AppointmentStatusBadge
+              status={a.status}
+              appointment={a}
+              now={now}
+            />
             <dl className="grid gap-4 sm:grid-cols-2">
               {[
                 ['Profissional', a.professional.user.name],
@@ -275,7 +291,15 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
     </Frame>
   )
 }
-function AppointmentList({ clinic, create }: { clinic: string; create: boolean }) {
+function AppointmentList({
+  clinic,
+  create,
+  now,
+}: {
+  clinic: string
+  create: boolean
+  now: number
+}) {
   const filterState = useUrlFilters(listRules, {
     page: '1',
     from: '',
@@ -393,7 +417,11 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
                 <p>
                   {formatAppointment(a.scheduledAt)} · {a.durationMinutes} min
                 </p>
-                <AppointmentStatusBadge status={a.status} />
+                <AppointmentStatusBadge
+                  status={a.status}
+                  appointment={a}
+                  now={now}
+                />
                 <Link
                   className={`${buttonClass} mt-3 w-full`}
                   to={`/agendamentos/${a.id}`}
@@ -429,7 +457,11 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
                     <td className="break-words p-3">{a.professional.user.name}</td>
                     <td className="p-3">{formatAppointment(a.scheduledAt)}</td>
                     <td className="p-3">
-                      <AppointmentStatusBadge status={a.status} />
+                      <AppointmentStatusBadge
+                        status={a.status}
+                        appointment={a}
+                        now={now}
+                      />
                     </td>
                     <td className="p-3">
                       <Link

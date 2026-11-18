@@ -1,3 +1,4 @@
+import { useOperationalClock } from '../../../hooks/use-operational-clock'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FullCalendar, {
   type CalendarRef,
@@ -20,7 +21,7 @@ import type { AppointmentQuery } from '../../appointments/types/appointment'
 import { useCalendarAppointments } from '../hooks/use-calendar-appointments'
 import { useResponsiveCalendar } from '../hooks/use-responsive-calendar'
 import { today } from '../utils/calendar'
-import { appointmentToEvent } from '../utils/appointmentToEvent'
+import { appointmentToEvent, appointmentEventLabel } from '../utils/appointmentToEvent'
 import {
   calendarTimeZone,
   clinicalDateTime,
@@ -53,7 +54,9 @@ export function FullCalendarView({
   manage: boolean
   filters: AppointmentQuery
 }) {
+  const now = useOperationalClock()
   const ref = useRef<CalendarRef>(null)
+  const mountedEvents = useRef(new Map<HTMLElement, string>())
   const desktop = useResponsiveCalendar()
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -93,10 +96,20 @@ export function FullCalendarView({
   )
   const events = useMemo(
     () =>
-      query.isFetching || query.isError ? [] : (query.data ?? []).map(appointmentToEvent),
-    [query.data, query.isFetching, query.isError],
+      query.isFetching || query.isError
+        ? []
+        : (query.data ?? []).map((appointment) => appointmentToEvent(appointment, now)),
+    [query.data, query.isFetching, query.isError, now],
   )
   const previousDesktop = useRef(desktop)
+  useEffect(() => {
+    const rows = new Map((query.data ?? []).map((a) => [a.id, a]))
+    for (const [element, id] of mountedEvents.current) {
+      const appointment = rows.get(id)
+      if (appointment)
+        element.setAttribute('aria-label', appointmentEventLabel(appointment, now))
+    }
+  }, [query.data, now])
   useEffect(() => {
     if (desktop === previousDesktop.current) return
     previousDesktop.current = desktop
@@ -237,10 +250,13 @@ export function FullCalendarView({
           }
           eventInteractive
           eventDidMount={(info) => {
-            info.el.setAttribute(
-              'aria-label',
-              `${info.timeText} ${info.event.title}, ${info.event.extendedProps.professional}, ${info.event.extendedProps.statusLabel}. Abrir detalhes`,
-            )
+            mountedEvents.current.set(info.el, info.event.id)
+            const appointment = query.data?.find((a) => a.id === info.event.id)
+            if (appointment)
+              info.el.setAttribute('aria-label', appointmentEventLabel(appointment, now))
+          }}
+          eventWillUnmount={(info) => {
+            mountedEvents.current.delete(info.el)
           }}
           editable={false}
           eventStartEditable={false}
