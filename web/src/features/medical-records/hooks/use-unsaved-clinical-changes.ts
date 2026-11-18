@@ -13,6 +13,13 @@ export function useUnsavedClinicalChanges(
       event.returnValue = ''
     }
     const changeContext = (event: Event) => {
+      if (event.defaultPrevented) return
+      if (saving) {
+        event.preventDefault()
+        return
+      }
+      if (Reflect.get(event, 'medvitaHandled')) return
+      Object.defineProperty(event, 'medvitaHandled', { value: true, configurable: true })
       if (saving || !window.confirm(message)) event.preventDefault()
     }
     window.addEventListener('beforeunload', unload)

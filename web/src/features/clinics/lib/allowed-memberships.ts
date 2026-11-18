@@ -9,12 +9,12 @@ export function getAllowedMemberships(
     user.clinicRoles.map((membership) => [membership.clinicId, membership.role]),
   )
 
-  return memberships.filter((membership) => {
+  return memberships.flatMap((membership) => {
     const authenticatedRole = rolesByClinic.get(membership.clinicId)
-    return (
-      membership.active &&
+    return membership.active &&
       membership.clinic?.active === true &&
-      authenticatedRole === membership.role
-    )
+      authenticatedRole !== undefined
+      ? [{ ...membership, role: authenticatedRole! }]
+      : []
   })
 }

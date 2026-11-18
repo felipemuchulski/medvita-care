@@ -1,4 +1,10 @@
 import { ApiError } from './api-error'
+import {
+  announceAuthorizationNotice,
+  assertAuthorization,
+  authorizationSignal,
+  getAuthorization,
+} from '../lib/authorization-store'
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 type QueryPrimitive = string | number | boolean
@@ -6,18 +12,24 @@ type QueryValue = QueryPrimitive | null | undefined | readonly QueryPrimitive[]
 
 export type QueryParams = Record<string, QueryValue>
 
-export interface RequestOptions<TBody = unknown>
-  extends Omit<RequestInit, 'body' | 'headers' | 'method'> {
+export interface RequestOptions<TBody = unknown> extends Omit<
+  RequestInit,
+  'body' | 'headers' | 'method'
+> {
   body?: TBody
   headers?: HeadersInit
   query?: QueryParams
   authenticated?: boolean
+  sessionOperation?: boolean
+  identityOnly?: boolean
+  retryAfterRefresh?: boolean
 }
 
 export interface AuthHandlers {
   getAccessToken: () => string | null
   refreshAccessToken?: () => Promise<string | null>
   onSessionExpired?: () => void
+  onForbidden?: () => void
 }
 
 export interface HttpClientOptions {
@@ -50,11 +62,31 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
+function contextSignal(requestSignal?: AbortSignal | null) {
+  const context = authorizationSignal()
+  if (!requestSignal) return { signal: context, release: () => undefined }
+  const controller = new AbortController()
+  const abort = () => controller.abort()
+  context.addEventListener('abort', abort, { once: true })
+  requestSignal.addEventListener('abort', abort, { once: true })
+  if (context.aborted || requestSignal.aborted) abort()
+  return {
+    signal: controller.signal,
+    release: () => {
+      context.removeEventListener('abort', abort)
+      requestSignal.removeEventListener('abort', abort)
+    },
+  }
+}
+
 function toRequestInit<TBody>(options: RequestOptions<TBody>): RequestInit {
   const init = { ...options } as Record<string, unknown>
   delete init.body
   delete init.query
   delete init.authenticated
+  delete init.sessionOperation
+  delete init.identityOnly
+  delete init.retryAfterRefresh
   return init as RequestInit
 }
 
@@ -66,7 +98,7 @@ export class HttpClient {
 
   constructor(options: HttpClientOptions) {
     this.baseUrl = normalizeBaseUrl(options.baseUrl)
-    this.fetcher = options.fetcher ?? globalThis.fetch.bind(globalThis)
+    this.fetcher = options.fetcher ?? ((...args) => globalThis.fetch(...args))
   }
 
   configureAuth(handlers?: AuthHandlers): void {
@@ -110,7 +142,30 @@ export class HttpClient {
     path: string,
     options: RequestOptions<TBody> = {},
   ): Promise<TResponse> {
-    return this.execute<TResponse, TBody>(method, path, options, true)
+    const scope = getAuthorization()
+    const identityOnly = options.identityOnly === true
+    const revision = identityOnly ? scope.identity : scope.revision
+    const guarded = options.authenticated !== false && !options.sessionOperation
+    if (guarded) assertAuthorization(revision, identityOnly)
+    const guardSignal =
+      guarded && !identityOnly
+        ? contextSignal(options.signal)
+        : { signal: options.signal, release: () => undefined }
+    try {
+      const result = await this.execute<TResponse, TBody>(
+        method,
+        path,
+        { ...options, signal: guardSignal.signal },
+        true,
+        () => {
+          if (guarded) assertAuthorization(revision, identityOnly)
+        },
+      )
+      if (guarded) assertAuthorization(revision, identityOnly)
+      return result
+    } finally {
+      guardSignal.release()
+    }
   }
 
   private async execute<TResponse, TBody>(
@@ -118,6 +173,7 @@ export class HttpClient {
     path: string,
     options: RequestOptions<TBody>,
     allowAuthRetry: boolean,
+    assertCurrent: () => void,
   ): Promise<TResponse> {
     const authenticated = options.authenticated !== false
     const headers = new Headers(options.headers)
@@ -142,8 +198,7 @@ export class HttpClient {
         ...init,
         method,
         headers,
-        body:
-          options.body === undefined ? undefined : JSON.stringify(options.body),
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
       })
     } catch (error: unknown) {
       if (isAbortError(error)) throw ApiError.aborted(error)
@@ -156,18 +211,38 @@ export class HttpClient {
       allowAuthRetry &&
       this.authHandlers?.refreshAccessToken
     ) {
+      assertCurrent()
       const refreshedToken = await this.refreshAccessToken()
       if (refreshedToken) {
-        return this.execute<TResponse, TBody>(method, path, options, false)
+        assertCurrent()
+        if (method === 'GET' || options.retryAfterRefresh) {
+          return this.execute<TResponse, TBody>(
+            method,
+            path,
+            options,
+            false,
+            assertCurrent,
+          )
+        }
+        const message =
+          'Sessão renovada. A operação não foi reenviada; revise e tente novamente.'
+        announceAuthorizationNotice(message)
+        throw new ApiError({ status: 401, code: 'UNAUTHORIZED', message })
       }
+      assertCurrent()
       this.authHandlers.onSessionExpired?.()
+      throw await ApiError.fromResponse(response)
     }
 
     if (!response.ok) {
+      assertCurrent()
       if (response.status === 401 && authenticated && !allowAuthRetry) {
         this.authHandlers?.onSessionExpired?.()
       }
-      throw await ApiError.fromResponse(response)
+      const error = await ApiError.fromResponse(response)
+      if (response.status === 403 && authenticated && !options.sessionOperation)
+        this.authHandlers?.onForbidden?.()
+      throw error
     }
 
     return this.parseResponse<TResponse>(response)

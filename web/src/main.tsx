@@ -15,6 +15,7 @@ import './index.css'
 import { AuthProvider } from './contexts/AuthProvider'
 import { ClinicProvider } from './contexts/ClinicProvider'
 import { queryClient } from './lib/query-client'
+import { AuthorizationBoundary } from './contexts/AuthorizationBoundary'
 
 const router = createBrowserRouter([{ path: '*', element: <App /> }])
 
@@ -23,7 +24,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ClinicProvider>
-          <RouterProvider router={router} />
+          <AuthorizationBoundary>
+            <RouterProvider router={router} />
+          </AuthorizationBoundary>
         </ClinicProvider>
       </AuthProvider>
     </QueryClientProvider>

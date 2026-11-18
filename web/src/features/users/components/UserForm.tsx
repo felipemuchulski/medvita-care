@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useAuthorizationCheck } from '../../../lib/authorized-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router'
@@ -19,6 +20,7 @@ export function UserForm({
   onSaved: (user: ManagedUser) => void
 }) {
   const { user } = useAuth()
+  const assertCurrent = useAuthorizationCheck()
   const committed = useUserCommitted()
   const [show, setShow] = useState(false)
   const [confirmation, setConfirmation] = useState<UserValues | null>(null)
@@ -50,6 +52,7 @@ export function UserForm({
     lock.current = true
     setSaving(true)
     try {
+      assertCurrent()
       let saved: ManagedUser
       // Credentials never enter a TanStack Query mutation or cache.
       if (record) {
@@ -65,9 +68,10 @@ export function UserForm({
           email: values.email,
           password: values.password,
         })
+      await committed(saved)
+      assertCurrent()
       reset({ ...values, password: '' })
       setConfirmation(null)
-      await committed(saved)
       onSaved(saved)
     } catch (error) {
       setError('root', { message: userError(error) })

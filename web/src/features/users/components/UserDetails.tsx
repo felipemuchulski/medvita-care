@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useAuthorizationCheck } from '../../../lib/authorized-query'
 import { Link } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { buttonClass } from '../../appointments/components/Selectors'
@@ -19,6 +20,7 @@ export function UserDetails({
   notice?: string
 }) {
   const { user } = useAuth()
+  const assertCurrent = useAuthorizationCheck()
   const links = useUserMemberships(actor, record.id)
   const committed = useUserCommitted()
   const [confirm, setConfirm] = useState(false)
@@ -32,8 +34,10 @@ export function UserDetails({
     setPending(true)
     setError('')
     try {
+      assertCurrent()
       const saved = await usersApi.active(record.id, !record.active)
       await committed(saved)
+      assertCurrent()
       setConfirm(false)
       setMessage(
         saved.active ? 'Usuário ativado com sucesso.' : 'Usuário desativado com sucesso.',

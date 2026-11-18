@@ -1,25 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuthorizedQuery, useAuthorizedMutation } from '../../../lib/authorized-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { clinicsApi } from '../api/clinics-api'
-import type {
-  Clinic,
-  ClinicMembership,
-  CreateClinicPayload,
-  UpdateClinicPayload,
-} from '../types/clinic'
+import type { CreateClinicPayload, UpdateClinicPayload } from '../types/clinic'
 export const clinicKeys = {
   scope: (user: string) => ['clinic-management', user] as const,
   detail: (user: string, id: string) =>
     ['clinic-management', user, 'detail', id] as const,
 }
 export function useClinics(user: string) {
-  return useQuery({
+  return useAuthorizedQuery({
     queryKey: [...clinicKeys.scope(user), 'global'],
     queryFn: ({ signal }) => clinicsApi.list(signal),
     gcTime: 0,
   })
 }
 export function useClinicDetails(user: string, id: string) {
-  return useQuery({
+  return useAuthorizedQuery({
     queryKey: clinicKeys.detail(user, id),
     queryFn: async ({ signal }) => {
       const clinic = await clinicsApi.detail(id, signal)
@@ -32,7 +28,7 @@ export function useClinicDetails(user: string, id: string) {
   })
 }
 export function useClinicTeam(user: string, id: string) {
-  return useQuery({
+  return useAuthorizedQuery({
     queryKey: [...clinicKeys.scope(user), 'team', id],
     queryFn: async ({ signal }) => {
       const team = await clinicsApi.team(id, signal)
@@ -45,42 +41,25 @@ export function useClinicTeam(user: string, id: string) {
 }
 export function useClinicMutations(user: string) {
   const cache = useQueryClient()
-  const onSuccess = async (clinic: Clinic) => {
-    cache.setQueryData(clinicKeys.detail(user, clinic.id), clinic)
-    cache.setQueryData<ClinicMembership[]>(['clinic-memberships', user], (old) =>
-      old?.map((m) =>
-        m.clinicId === clinic.id
-          ? {
-              ...m,
-              clinic: {
-                ...m.clinic,
-                id: clinic.id,
-                name: clinic.name,
-                document: clinic.document,
-                active: clinic.active,
-              },
-            }
-          : m,
-      ),
-    )
+  const onSuccess = async () => {
     await Promise.all([
       cache.invalidateQueries({ queryKey: clinicKeys.scope(user) }),
       cache.invalidateQueries({ queryKey: ['clinic-memberships', user] }),
     ])
   }
   return {
-    create: useMutation({
+    create: useAuthorizedMutation({
       mutationFn: (payload: CreateClinicPayload) => clinicsApi.create(payload),
       onSuccess,
       gcTime: 0,
     }),
-    update: useMutation({
+    update: useAuthorizedMutation({
       mutationFn: ({ id, payload }: { id: string; payload: UpdateClinicPayload }) =>
         clinicsApi.update(id, payload),
       onSuccess,
       gcTime: 0,
     }),
-    active: useMutation({
+    active: useAuthorizedMutation({
       mutationFn: ({ id, active }: { id: string; active: boolean }) =>
         clinicsApi.active(id, active),
       onSuccess,

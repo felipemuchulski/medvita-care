@@ -1,95 +1,111 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useLayoutEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import { isApiError } from '../api/api-error'
 import { clinicsApi } from '../features/clinics/api/clinics-api'
 import { getAllowedMemberships } from '../features/clinics/lib/allowed-memberships'
 import { useAuth } from '../hooks/use-auth'
-import { queryClient } from '../lib/query-client'
+import {
+  assertAuthorization,
+  getAuthorization,
+  permissionSignature,
+  quarantineAuthorization,
+  setAuthorizationClinic,
+  subscribeAuthorization,
+} from '../lib/authorization-store'
 import { ClinicContext, type ClinicContextValue } from './clinic-context'
 
-interface ClinicSelection {
-  userId: string
-  clinicId: string
-}
-
 export function ClinicProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
-  const [selection, setSelection] = useState<ClinicSelection | null>(null)
+  const { user, revalidateSession } = useAuth()
+  const authorization = useSyncExternalStore(
+    subscribeAuthorization,
+    getAuthorization,
+    getAuthorization,
+  )
+  const [selection, setSelection] = useState<{ userId: string; clinicId: string } | null>(
+    null,
+  )
   const membershipsQuery = useQuery({
-    queryKey: ['clinic-memberships', user?.id],
-    queryFn: () => clinicsApi.listUserMemberships(user!.id),
+    queryKey: ['clinic-memberships', user?.id, authorization.identity],
+    queryFn: async ({ signal }) => {
+      const identity = getAuthorization().identity
+      const data = await clinicsApi.listUserMemberships(user!.id, signal)
+      assertAuthorization(identity, true)
+      if (data.some((m) => m.userId !== user!.id))
+        throw new Error('Invalid membership identity')
+      const activeRoles = data
+        .filter((m) => m.active && m.clinic?.active)
+        .map((m) => ({ clinicId: m.clinicId, role: m.role }))
+      const current = getAuthorization().user
+      if (
+        current &&
+        permissionSignature(current) !==
+          permissionSignature({ ...current, clinicRoles: activeRoles })
+      ) {
+        quarantineAuthorization()
+        await revalidateSession()
+        assertAuthorization(identity, true)
+        const refreshed = getAuthorization().user
+        if (
+          refreshed &&
+          permissionSignature(refreshed) !==
+            permissionSignature({ ...refreshed, clinicRoles: activeRoles })
+        ) {
+          quarantineAuthorization() // Concurrent changes: stay blocked until explicit retry/focus/poll.
+        }
+      }
+      return data
+    },
     enabled: Boolean(user),
     refetchOnWindowFocus: true,
     refetchInterval: 60_000,
   })
-
   const memberships = useMemo(
-    () =>
-      user && !membershipsQuery.isError
-        ? getAllowedMemberships(user, membershipsQuery.data ?? [])
-        : [],
-    [membershipsQuery.data, membershipsQuery.isError, user],
+    () => (user ? getAllowedMemberships(user, membershipsQuery.data ?? []) : []),
+    [user, membershipsQuery.data],
   )
-
-  const selectedClinicId =
-    selection && selection.userId === user?.id ? selection.clinicId : null
-  const activeMembership = selectedClinicId
-    ? (memberships.find((membership) => membership.clinicId === selectedClinicId) ?? null)
+  const selected = selection?.userId === user?.id ? selection?.clinicId : null
+  const activeMembership = selected
+    ? (memberships.find((m) => m.clinicId === selected) ?? null)
     : memberships.length === 1
       ? memberships[0]
       : null
-  const previousClinic = useRef<string | null>(null)
-  const activeId = activeMembership?.clinicId ?? null
-  useEffect(() => {
-    const previous = previousClinic.current
-    previousClinic.current = activeId
-    if (previous && previous !== activeId) {
-      const predicate = (query: { queryKey: readonly unknown[] }) =>
-        query.queryKey[0] !== 'clinic-memberships' &&
-        query.queryKey[0] !== 'clinic-management' &&
-        query.queryKey[0] !== 'user-management' &&
-        query.queryKey.includes(previous)
-      void queryClient.cancelQueries({ predicate })
-      queryClient.removeQueries({ predicate })
-    }
-  }, [activeId])
+  const activeClinicId = activeMembership?.clinicId ?? null
+  useLayoutEffect(() => {
+    setAuthorizationClinic(activeClinicId)
+  }, [activeClinicId])
 
-  function selectClinic(clinicId: string): void {
-    if (!user || !memberships.some((item) => item.clinicId === clinicId)) {
+  function selectClinic(clinicId: string) {
+    if (!user || !memberships.some((m) => m.clinicId === clinicId))
       throw new Error('A clínica selecionada não pertence ao usuário.')
-    }
-
-    if (clinicId === activeMembership?.clinicId) return
+    if (clinicId === activeClinicId) return
     if (
       !window.dispatchEvent(
         new Event('medvita:before-clinic-change', { cancelable: true }),
       )
     )
       return
-    queryClient.removeQueries({
-      predicate: (query) =>
-        query.queryKey[0] !== 'clinic-memberships' &&
-        query.queryKey[0] !== 'clinic-management' &&
-        query.queryKey[0] !== 'user-management',
-    })
     setSelection({ userId: user.id, clinicId })
+    setAuthorizationClinic(clinicId, true)
   }
-
   const error = membershipsQuery.error
     ? isApiError(membershipsQuery.error)
       ? membershipsQuery.error.message
-      : 'Não foi possível carregar as clínicas autorizadas.'
+      : 'Não foi possível verificar as clínicas autorizadas.'
     : null
-
   const value: ClinicContextValue = {
     memberships,
     activeMembership,
-    activeClinicId: activeMembership?.clinicId ?? null,
+    activeClinicId,
     activeRole: activeMembership?.role ?? null,
     isLoading: membershipsQuery.isLoading,
     error,
     selectClinic,
   }
-
   return <ClinicContext.Provider value={value}>{children}</ClinicContext.Provider>
 }

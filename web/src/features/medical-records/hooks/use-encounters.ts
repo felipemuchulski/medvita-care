@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuthorizedQuery, useAuthorizedMutation } from '../../../lib/authorized-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { encountersApi } from '../api/encounters-api'
 import type {
   ClinicalPayload,
@@ -34,7 +35,7 @@ export function useEncounters(
   patient?: string,
   enabled = true,
 ) {
-  return useQuery({
+  return useAuthorizedQuery({
     queryKey: [
       ...encounterKeys.scope(clinic, user),
       patient ? 'history' : 'list',
@@ -56,7 +57,7 @@ export function useEncounters(
   })
 }
 export function useEncounter(clinic: string, user: string, id: string) {
-  return useQuery({
+  return useAuthorizedQuery({
     queryKey: [...encounterKeys.scope(clinic, user), 'detail', id],
     queryFn: async ({ signal }) => {
       const record = assertClinicalClinic(
@@ -82,24 +83,24 @@ export function useEncounterMutations(clinic: string, user: string) {
     ])
   }
   return {
-    start: useMutation({
+    start: useAuthorizedMutation({
       mutationFn: (appointmentId: string) => encountersApi.start(clinic, appointmentId),
       onSuccess,
       gcTime: 0,
     }),
-    save: useMutation({
+    save: useAuthorizedMutation({
       mutationFn: ({ id, payload }: { id: string; payload: Partial<ClinicalPayload> }) =>
         encountersApi.save(clinic, id, payload),
       onSuccess,
       gcTime: 0,
     }),
-    complete: useMutation({
+    complete: useAuthorizedMutation({
       mutationFn: ({ id, payload }: { id: string; payload: ClinicalPayload }) =>
         encountersApi.complete(clinic, id, payload),
       onSuccess,
       gcTime: 0,
     }),
-    cancel: useMutation({
+    cancel: useAuthorizedMutation({
       mutationFn: ({ id, reason }: { id: string; reason: string }) =>
         encountersApi.cancel(clinic, id, reason),
       onSuccess,

@@ -18,7 +18,10 @@ export const clinicsApi = {
     httpClient.patch<Clinic>(`/clinics/${id}/active`, { active }),
   team: (id: string, signal?: AbortSignal) =>
     httpClient.get<ClinicTeamMember[]>(`/clinics/${id}/users`, { signal }),
-  listUserMemberships(userId: string): Promise<ClinicMembership[]> {
-    return httpClient.get<ClinicMembership[]>(`/users/${userId}/clinics`)
+  listUserMemberships(userId: string, signal?: AbortSignal): Promise<ClinicMembership[]> {
+    return httpClient.get<ClinicMembership[]>(`/users/${userId}/clinics`, {
+      signal,
+      identityOnly: true,
+    })
   },
 }

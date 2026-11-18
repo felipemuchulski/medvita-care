@@ -1,5 +1,5 @@
+import { useAuthorizedQuery } from '../../../lib/authorized-query'
 import { useId, useState, type Ref } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { patientsApi } from '../../patients/api/patients-api'
 import { useProfessionals } from '../../professionals/hooks/use-professionals'
 
@@ -33,7 +33,7 @@ export function PatientSelector({
   const [draft, setDraft] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const query = useQuery({
+  const query = useAuthorizedQuery({
     queryKey: ['appointment-patients', clinic, search, page, activeOnly],
     queryFn: () =>
       patientsApi.list(clinic, {

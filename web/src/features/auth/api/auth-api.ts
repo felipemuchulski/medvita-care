@@ -7,6 +7,7 @@ import type {
 } from '../types/auth'
 
 const sessionOptions = {
+  sessionOperation: true,
   credentials: 'include' as const,
   headers: { 'X-Medvita-Session': '1' },
 }
@@ -27,7 +28,10 @@ export const authApi = {
   },
 
   logout(): Promise<MessageResponse> {
-    return httpClient.post<MessageResponse>('/auth/logout', undefined, sessionOptions)
+    return httpClient.post<MessageResponse>('/auth/logout', undefined, {
+      ...sessionOptions,
+      retryAfterRefresh: true,
+    })
   },
 
   changePassword(payload: ChangePasswordRequest): Promise<MessageResponse> {

@@ -7,44 +7,59 @@ import type {
   LoginRequest,
 } from '../features/auth/types/auth'
 import { queryClient } from '../lib/query-client'
+import { setAuthorizationUser, quarantineAuthorization } from '../lib/authorization-store'
+import { ApiError, isApiError } from '../api/api-error'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthResponse | null>(null)
   const [restoring, setRestoring] = useState(true)
   const generation = useRef(0)
+  const mounted = useRef(true)
   const pendingRefresh = useRef<Promise<string | null> | null>(null)
   const bootstrap = useRef<Promise<string | null> | null>(null)
   const sessionRef = useRef<AuthResponse | null>(null)
-  const refreshRef = useRef<() => Promise<string | null>>(async () => null)
+  const refreshRef = useRef<(permissionCheck?: boolean) => Promise<string | null>>(
+    async () => null,
+  )
   const expireRef = useRef<() => void>(() => undefined)
 
   const clearSession = useCallback(() => {
     generation.current += 1
     sessionRef.current = null
     setSession(null)
+    setAuthorizationUser(null)
+    void queryClient.cancelQueries()
     queryClient.clear()
   }, [])
 
-  const refreshSession = useCallback((): Promise<string | null> => {
-    if (pendingRefresh.current) return pendingRefresh.current
-    const currentGeneration = generation.current
-    pendingRefresh.current = (async () => {
-      try {
-        const refreshedSession = await authApi.refresh()
-        if (generation.current !== currentGeneration) return null
-        sessionRef.current = refreshedSession
-        setSession(refreshedSession)
-        return refreshedSession.accessToken
-      } catch {
-        if (generation.current === currentGeneration) clearSession()
-        return null
-      } finally {
-        pendingRefresh.current = null
-      }
-    })()
-    return pendingRefresh.current
-  }, [clearSession])
+  const refreshSession = useCallback(
+    (permissionCheck = false): Promise<string | null> => {
+      if (pendingRefresh.current) return pendingRefresh.current
+      const currentGeneration = generation.current
+      pendingRefresh.current = (async () => {
+        try {
+          const refreshedSession = await authApi.refresh()
+          if (!mounted.current || generation.current !== currentGeneration) return null
+          sessionRef.current = refreshedSession
+          setAuthorizationUser(refreshedSession.user)
+          setSession(refreshedSession)
+          return refreshedSession.accessToken
+        } catch (error) {
+          if (mounted.current && generation.current === currentGeneration) {
+            if (!permissionCheck || (isApiError(error) && error.status === 401))
+              clearSession()
+            else quarantineAuthorization()
+          }
+          return null
+        } finally {
+          pendingRefresh.current = null
+        }
+      })()
+      return pendingRefresh.current
+    },
+    [clearSession],
+  )
 
   useEffect(() => {
     let active = true
@@ -64,47 +79,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession, refreshSession])
 
   useEffect(() => {
+    mounted.current = true
     httpClient.configureAuth({
       getAccessToken: () => sessionRef.current?.accessToken ?? null,
       refreshAccessToken: () => refreshRef.current(),
       onSessionExpired: () => expireRef.current(),
+      onForbidden: () => {
+        quarantineAuthorization()
+        void refreshRef.current(true)
+      },
     })
 
-    return () => httpClient.configureAuth(undefined)
+    return () => {
+      mounted.current = false
+      httpClient.configureAuth(undefined)
+    }
   }, [])
 
-  const login = useCallback(async (payload: LoginRequest) => {
-    generation.current += 1
-    await pendingRefresh.current
-    const authenticatedSession = await authApi.login(payload)
-    sessionRef.current = authenticatedSession
-    setSession(authenticatedSession)
-  }, [])
+  const login = useCallback(
+    async (payload: LoginRequest) => {
+      clearSession()
+      const currentGeneration = generation.current
+      await pendingRefresh.current
+      const authenticatedSession = await authApi.login(payload)
+      if (!mounted.current || generation.current !== currentGeneration)
+        throw ApiError.aborted(new Error('Login superseded'))
+      sessionRef.current = authenticatedSession
+      setAuthorizationUser(authenticatedSession.user, true)
+      setSession(authenticatedSession)
+    },
+    [clearSession],
+  )
 
   const logout = useCallback(async () => {
     if (!window.dispatchEvent(new Event('medvita:before-logout', { cancelable: true })))
       return
+    const logoutGeneration = ++generation.current
     try {
-      generation.current += 1
+      quarantineAuthorization()
       await pendingRefresh.current
+      if (generation.current !== logoutGeneration) return
       if (sessionRef.current) await authApi.logout()
     } catch {
       // A limpeza local não pode depender da disponibilidade do servidor.
     } finally {
-      clearSession()
+      if (generation.current === logoutGeneration) clearSession()
     }
   }, [clearSession])
 
   const changePassword = useCallback(
     async (payload: ChangePasswordRequest) => {
+      const currentGeneration = generation.current
       await authApi.changePassword(payload)
+      if (generation.current !== currentGeneration)
+        throw ApiError.aborted(new Error('Session changed'))
       clearSession()
     },
     [clearSession],
   )
 
   const revalidateSession = useCallback(
-    async () => Boolean(await refreshSession()),
+    async () => Boolean(await refreshSession(true)),
     [refreshSession],
   )
 
