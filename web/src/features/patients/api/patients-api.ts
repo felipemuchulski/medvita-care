@@ -11,8 +11,13 @@ function basePath(clinicId: string): string {
 }
 
 export const patientsApi = {
-  list(clinicId: string, query: PatientsQuery): Promise<PatientsResponse> {
+  list(
+    clinicId: string,
+    query: PatientsQuery,
+    signal?: AbortSignal,
+  ): Promise<PatientsResponse> {
     return httpClient.get<PatientsResponse>(basePath(clinicId), {
+      signal,
       query: {
         page: query.page,
         limit: query.limit,
@@ -30,22 +35,14 @@ export const patientsApi = {
     return httpClient.post<Patient, PatientPayload>(basePath(clinicId), payload)
   },
 
-  update(
-    clinicId: string,
-    patientId: string,
-    payload: PatientPayload,
-  ): Promise<Patient> {
+  update(clinicId: string, patientId: string, payload: PatientPayload): Promise<Patient> {
     return httpClient.patch<Patient, PatientPayload>(
       `${basePath(clinicId)}/${patientId}`,
       payload,
     )
   },
 
-  updateActive(
-    clinicId: string,
-    patientId: string,
-    active: boolean,
-  ): Promise<Patient> {
+  updateActive(clinicId: string, patientId: string, active: boolean): Promise<Patient> {
     return httpClient.patch<Patient, { active: boolean }>(
       `${basePath(clinicId)}/${patientId}/active`,
       { active },

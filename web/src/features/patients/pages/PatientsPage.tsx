@@ -1,6 +1,8 @@
-import { Search, UserPlus, UsersRound } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
-import { Link, useLocation } from 'react-router'
+import { UserPlus, UsersRound } from 'lucide-react'
+import { useLocation } from 'react-router'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
+import { SearchField } from '../../../components/filters/SearchField'
+import { filterRule, useUrlFilters } from '../../../lib/list-filters'
 import { isApiError } from '../../../api/api-error'
 import type { ClinicRole } from '../../auth/types/auth'
 import { useClinic } from '../../../hooks/use-clinic'
@@ -9,6 +11,12 @@ import PatientsUnavailable from '../components/PatientsUnavailable'
 import { usePatients } from '../hooks/use-patients'
 import { formatCpf, formatDateOnly } from '../lib/patient-format'
 import { canReadPatients, canWritePatients } from '../lib/patient-permissions'
+
+const rules = {
+  search: filterRule.search,
+  active: filterRule.enum(['active', 'inactive', 'all']),
+  page: filterRule.page,
+}
 
 interface LocationState {
   notice?: string
@@ -38,12 +46,9 @@ function PatientsContent({
   activeRole: ClinicRole
 }) {
   const location = useLocation()
-  const [draftSearch, setDraftSearch] = useState('')
-  const [search, setSearch] = useState('')
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>(
-    'active',
-  )
-  const [page, setPage] = useState(1)
+  const filters = useUrlFilters(rules, { active: 'active', page: '1', search: '' })
+  const { search, active: activeFilter } = filters.values
+  const page = Number(filters.values.page)
   const query = {
     page,
     limit: 20,
@@ -52,12 +57,6 @@ function PatientsContent({
   }
   const patientsQuery = usePatients(clinicId, query)
   const canWrite = canWritePatients(activeRole)
-
-  function applySearch(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault()
-    setSearch(draftSearch.trim())
-    setPage(1)
-  }
 
   const errorMessage = patientsQuery.error
     ? isApiError(patientsQuery.error)
@@ -95,33 +94,23 @@ function PatientsContent({
       )}
 
       <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-        <form
-          onSubmit={applySearch}
-          className="grid gap-3 sm:grid-cols-[1fr_180px_auto]"
+        <section
+          aria-label="Filtros de pacientes"
+          className="grid min-w-0 gap-3 sm:grid-cols-[1fr_180px_auto]"
         >
-          <label className="relative">
-            <span className="sr-only">Buscar paciente por nome ou CPF</span>
-            <Search
-              aria-hidden="true"
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-            />
-            <input
-              value={draftSearch}
-              onChange={(event) => setDraftSearch(event.target.value)}
-              placeholder="Buscar por nome ou CPF"
-              className="min-h-11 w-full rounded-lg border border-border py-2 pl-10 pr-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
-          <label>
-            <span className="sr-only">Filtrar por status</span>
+          <SearchField
+            key={filters.resetKey}
+            label="Buscar paciente por nome ou CPF"
+            value={search}
+            onChange={(value) => filters.update({ search: value }, true)}
+          />
+          <label className="form-field min-w-0">
+            <span>Status</span>
             <select
+              aria-label="Filtrar por status"
               value={activeFilter}
-              onChange={(event) => {
-                setActiveFilter(event.target.value as typeof activeFilter)
-                setPage(1)
-              }}
-              className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              onChange={(event) => filters.update({ active: event.target.value })}
+              className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base"
             >
               <option value="active">Ativos</option>
               <option value="inactive">Inativos</option>
@@ -129,12 +118,13 @@ function PatientsContent({
             </select>
           </label>
           <button
-            type="submit"
-            className="min-h-11 rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-primary-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            type="button"
+            onClick={filters.reset}
+            className="min-h-11 self-end rounded-lg border border-primary px-4 py-2 text-primary"
           >
-            Buscar
+            Limpar filtros
           </button>
-        </form>
+        </section>
       </div>
 
       {patientsQuery.isLoading ? (
@@ -248,7 +238,7 @@ function PatientsContent({
                 <button
                   type="button"
                   disabled={page <= 1 || patientsQuery.isFetching}
-                  onClick={() => setPage((value) => value - 1)}
+                  onClick={() => filters.update({ page: String(page - 1) })}
                   className="min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
                 >
                   Anterior
@@ -256,7 +246,7 @@ function PatientsContent({
                 <button
                   type="button"
                   disabled={page >= response.meta.totalPages || patientsQuery.isFetching}
-                  onClick={() => setPage((value) => value + 1)}
+                  onClick={() => filters.update({ page: String(page + 1) })}
                   className="min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
                 >
                   Próxima

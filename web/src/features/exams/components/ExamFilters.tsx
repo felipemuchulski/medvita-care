@@ -1,64 +1,37 @@
-import { useState, type FormEvent } from 'react'
 import { buttonClass, inputClass } from '../../appointments/components/Selectors'
+import { SearchField } from '../../../components/filters/SearchField'
+import { PeriodFields } from '../../../components/filters/PeriodFields'
 import { examStatusLabels } from '../lib/exam'
 import type { ExamType } from '../types/exam'
-import { ExamField } from './ExamField'
 export function ExamFilters({
-  params,
+  values,
   types,
-  onApply,
+  onChange,
+  onClear,
+  resetKey,
 }: {
-  params: URLSearchParams
+  values: Record<string, string>
   types: ExamType[]
-  onApply: (params: URLSearchParams) => void
+  onChange: (patch: Record<string, string>, replace?: boolean) => void
+  onClear: () => void
+  resetKey: number
 }) {
-  const [error, setError] = useState('')
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const data = new FormData(e.currentTarget)
-    const from = String(data.get('from') || '')
-    const to = String(data.get('to') || '')
-    if (from && to && from > to) {
-      setError('O fim do período deve ser igual ou posterior ao início.')
-      return
-    }
-    setError('')
-    const next = new URLSearchParams(params)
-    for (const field of ['search', 'examTypeId', 'status', 'from', 'to']) {
-      const value = String(data.get(field) || '').trim()
-      if (value) next.set(field, value)
-      else next.delete(field)
-    }
-    next.delete('page')
-    onApply(next)
-  }
   return (
-    <form
-      onSubmit={submit}
+    <section
       className="grid min-w-0 gap-4 rounded-xl border border-border bg-white p-4 sm:grid-cols-2 lg:grid-cols-3"
       aria-label="Filtros de exames"
     >
-      <ExamField
-        id="exams-search"
+      <SearchField
+        key={resetKey}
         label="Buscar paciente ou tipo de exame"
-      >
-        <input
-          id="exams-search"
-          name="search"
-          type="search"
-          maxLength={150}
-          defaultValue={params.get('search') || ''}
-          className={inputClass}
-        />
-      </ExamField>
-      <ExamField
-        id="exams-type"
-        label="Tipo de exame"
-      >
+        value={values.search || ''}
+        onChange={(search) => onChange({ search }, true)}
+      />
+      <label className="form-field min-w-0">
+        <span>Tipo de exame</span>
         <select
-          id="exams-type"
-          name="examTypeId"
-          defaultValue={params.get('examTypeId') || ''}
+          value={values.examTypeId || ''}
+          onChange={(event) => onChange({ examTypeId: event.target.value })}
           className={inputClass}
         >
           <option value="">Todos</option>
@@ -71,15 +44,12 @@ export function ExamFilters({
             </option>
           ))}
         </select>
-      </ExamField>
-      <ExamField
-        id="exams-status"
-        label="Status"
-      >
+      </label>
+      <label className="form-field min-w-0">
+        <span>Status</span>
         <select
-          id="exams-status"
-          name="status"
-          defaultValue={params.get('status') || ''}
+          value={values.status || ''}
+          onChange={(event) => onChange({ status: event.target.value })}
           className={inputClass}
         >
           <option value="">Todos</option>
@@ -92,54 +62,21 @@ export function ExamFilters({
             </option>
           ))}
         </select>
-      </ExamField>
-      <ExamField
-        id="exams-from"
-        label="Solicitados de"
-      >
-        <input
-          id="exams-from"
-          name="from"
-          type="date"
-          defaultValue={params.get('from') || ''}
-          className={inputClass}
+      </label>
+      <div className="sm:col-span-2 lg:col-span-3">
+        <PeriodFields
+          from={values.from || ''}
+          to={values.to || ''}
+          onChange={onChange}
         />
-      </ExamField>
-      <ExamField
-        id="exams-to"
-        label="Solicitados até"
-      >
-        <input
-          id="exams-to"
-          name="to"
-          type="date"
-          defaultValue={params.get('to') || ''}
-          className={inputClass}
-        />
-      </ExamField>
-      <div className="flex flex-wrap items-end gap-3">
-        <button
-          className={buttonClass}
-          type="submit"
-        >
-          Aplicar filtros
-        </button>
-        <button
-          className={buttonClass}
-          type="button"
-          onClick={() => onApply(new URLSearchParams())}
-        >
-          Limpar filtros
-        </button>
       </div>
-      {error && (
-        <p
-          role="alert"
-          className="text-sm text-red-800 sm:col-span-2 lg:col-span-3"
-        >
-          {error}
-        </p>
-      )}
-    </form>
+      <button
+        className={`${buttonClass} justify-self-start`}
+        type="button"
+        onClick={onClear}
+      >
+        Limpar filtros
+      </button>
+    </section>
   )
 }

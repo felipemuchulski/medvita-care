@@ -106,37 +106,52 @@ export function FullCalendarView({
     else if (desktop && api.view.type.startsWith('list')) api.changeView('timeGridWeek')
   }, [desktop])
 
-  const datesSet = useCallback((info: DatesSetInfo) => {
-    const range = visiblePeriod(info.startStr, info.endStr)
-    const current = ref.current?.getApi().getDate()
-    const date = current
-      ? clinicalDateTime(current.toISOString()).slice(0, 10)
-      : range.first
-    setPeriod((previous) =>
-      previous?.first === range.first &&
-      previous.last === range.last &&
-      previous.view === info.view.type &&
-      previous.date === date
-        ? previous
-        : { ...range, date, title: info.view.title, view: info.view.type },
-    )
-  }, [])
+  const logicalDate = useRef(initial.date)
+  const published = useRef({ date: initial.date, view: initial.view as string })
+  const datesSet = useCallback(
+    (info: DatesSetInfo) => {
+      const range = visiblePeriod(info.startStr, info.endStr)
+      const current = ref.current?.getApi().getDate()
+      const date = current
+        ? clinicalDateTime(current.toISOString()).slice(0, 10)
+        : logicalDate.current
+      logicalDate.current = date
+      published.current = { date, view: info.view.type }
+      setPeriod((previous) =>
+        previous?.first === range.first &&
+        previous.last === range.last &&
+        previous.view === info.view.type &&
+        previous.date === date
+          ? previous
+          : { ...range, date, title: info.view.title, view: info.view.type },
+      )
+      setParams(
+        (previous) => {
+          if (previous.get('date') === date && previous.get('view') === info.view.type)
+            return previous
+          const next = new URLSearchParams(previous)
+          next.set('date', date)
+          next.set('view', info.view.type)
+          return next
+        },
+        { replace: true },
+      )
+    },
+    [setParams],
+  )
   useEffect(() => {
-    if (
-      !period ||
-      (params.get('date') === period.date && params.get('view') === period.view)
-    )
-      return
-    setParams(
-      (previous) => {
-        const next = new URLSearchParams(previous)
-        next.set('date', period.date)
-        next.set('view', period.view)
-        return next
-      },
-      { replace: true },
-    )
-  }, [period, params, setParams])
+    const api = ref.current?.getApi()
+    const date = params.get('date')
+    const view = params.get('view')
+    if (!api || !validDate(date)) return
+    if (view && Object.hasOwn(viewLabels, view) && view !== published.current.view) {
+      logicalDate.current = date
+      api.changeView(view, date)
+    } else if (date !== published.current.date) {
+      logicalDate.current = date
+      api.gotoDate(date)
+    }
+  }, [params])
 
   function create(date: string, time = '') {
     if (!manage) return
@@ -215,7 +230,11 @@ export function FullCalendarView({
           datesSet={datesSet}
           dateClick={dateClick}
           eventContent={CalendarEventContent}
-          eventClick={(info) => navigate(`/agendamentos/${info.event.id}`)}
+          eventClick={(info) =>
+            navigate(`/agendamentos/${info.event.id}`, {
+              state: { calendarReturn: `/calendario?${params.toString()}` },
+            })
+          }
           eventInteractive
           eventDidMount={(info) => {
             info.el.setAttribute(

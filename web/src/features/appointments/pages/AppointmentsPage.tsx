@@ -1,5 +1,8 @@
+import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
+import { PeriodFields } from '../../../components/filters/PeriodFields'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { useState, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { useClinic } from '../../../hooks/use-clinic'
 import { useAuth } from '../../../hooks/use-auth'
 import { AppointmentStatusBadge } from '../components/AppointmentStatusBadge'
@@ -23,11 +26,20 @@ import {
   canCreate,
   formatAppointment,
   statusLabels,
-  toIso,
 } from '../lib/appointment'
 import type { AppointmentQuery, AppointmentStatus } from '../types/appointment'
 import { EncounterAppointmentAction } from '../../medical-records/components/EncounterAppointmentAction'
 import { CancelAppointmentDialog } from '../components/CancelAppointmentDialog'
+const listRules = {
+  page: filterRule.page,
+  patientId: filterRule.uuid,
+  professionalId: filterRule.uuid,
+  patientSearch: filterRule.search,
+  status: filterRule.enum(Object.keys(statusLabels)),
+  from: filterRule.date,
+  to: filterRule.date,
+}
+
 export default function AppointmentsPage() {
   const { activeClinicId, activeRole, isLoading, error } = useClinic()
   if (isLoading) return <p role="status">Carregando clínica...</p>
@@ -46,6 +58,8 @@ export default function AppointmentsPage() {
   )
 }
 function Frame({ children }: { children: ReactNode }) {
+  const location = useLocation()
+  const calendarReturn = location.state?.calendarReturn
   return (
     <div className="min-w-0 space-y-5">
       <Link
@@ -54,6 +68,15 @@ function Frame({ children }: { children: ReactNode }) {
       >
         Agendamentos
       </Link>
+      {typeof calendarReturn === 'string' &&
+        /^\/calendario(?:\?|$)/.test(calendarReturn) && (
+          <Link
+            to={calendarReturn}
+            className={buttonClass}
+          >
+            Voltar ao calendário
+          </Link>
+        )}
       {children}
     </div>
   )
@@ -94,7 +117,7 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
             onSave={async (payload) => {
               try {
                 const a = await mutations.create.mutateAsync(payload)
-                navigate(`/agendamentos/${a.id}`, {
+                navigate(`/agendamentos/${a.id}${location.search}`, {
                   state: { success: 'Agendamento criado com sucesso.' },
                 })
               } catch (e) {
@@ -161,8 +184,11 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
                   scheduledAt: payload.scheduledAt,
                   durationMinutes: payload.durationMinutes,
                 })
-                navigate(`/agendamentos/${a.id}`, {
-                  state: { success: 'Agendamento reagendado com sucesso.' },
+                navigate(`/agendamentos/${a.id}${location.search}`, {
+                  state: {
+                    success: 'Agendamento reagendado com sucesso.',
+                    calendarReturn: location.state?.calendarReturn,
+                  },
                 })
               } catch (e) {
                 throw new Error(appointmentError(e), { cause: e })
@@ -206,6 +232,7 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
               <Link
                 className={buttonClass}
                 to={`/agendamentos/${a.id}/reagendar`}
+                state={{ calendarReturn: location.state?.calendarReturn }}
               >
                 Reagendar
               </Link>
@@ -245,14 +272,24 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
   )
 }
 function AppointmentList({ clinic, create }: { clinic: string; create: boolean }) {
-  const [filters, setFilters] = useState<AppointmentQuery>({
-    page: 1,
-    limit: 20,
+  const filterState = useUrlFilters(listRules, {
+    page: '1',
+    from: '',
+    to: '',
+    patientSearch: '',
   })
-  const [error, setError] = useState('')
-  const query = useAppointments(clinic, filters)
-  function update(patch: AppointmentQuery) {
-    setFilters((f) => ({ ...f, ...patch, page: 1 }))
+  const v = filterState.values
+  const filters: AppointmentQuery = {
+    page: Number(v.page),
+    limit: 20,
+    patientId: v.patientId || undefined,
+    professionalId: v.professionalId || undefined,
+    status: (v.status || undefined) as AppointmentStatus | undefined,
+    ...periodQuery(v.from, v.to),
+  }
+  const query = useAppointments(clinic, filters, !filterState.invalidPeriod)
+  function update(patch: Record<string, string>) {
+    filterState.update(patch)
   }
   const rows = query.data?.data.filter((a) => a.clinicId === clinic) ?? []
   return (
@@ -275,6 +312,9 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
         className="grid min-w-0 gap-4 rounded-xl border border-border bg-white p-4 md:grid-cols-2"
       >
         <PatientSelector
+          key={filterState.resetKey}
+          searchValue={v.patientSearch}
+          onSearchChange={(value) => filterState.update({ patientSearch: value }, true)}
           clinic={clinic}
           value={filters.patientId ?? ''}
           onChange={(patientId) => update({ patientId })}
@@ -291,7 +331,7 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
             value={filters.status ?? ''}
             onChange={(e) =>
               update({
-                status: (e.target.value || undefined) as AppointmentStatus | undefined,
+                status: e.target.value,
               })
             }
           >
@@ -306,52 +346,21 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
             ))}
           </select>
         </label>
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          {(['from', 'to'] as const).map((key) => (
-            <label
-              key={key}
-              className="form-field"
-            >
-              {key === 'from' ? 'De' : 'Até'}
-              <input
-                type="date"
-                className={inputClass}
-                value={filters[key]?.slice(0, 10) ?? ''}
-                onChange={(e) => {
-                  const value = e.target.value
-                    ? toIso(
-                        `${e.target.value}T${key === 'from' ? '00:00' : '23:59'}`,
-                        '-03:00',
-                      ).replace(key === 'to' ? ':00-03:00' : 'never', ':59.999-03:00')
-                    : undefined
-                  const next = { ...filters, [key]: value }
-                  if (
-                    next.from &&
-                    next.to &&
-                    Date.parse(next.from) > Date.parse(next.to)
-                  ) {
-                    setError('A data final deve ser posterior à inicial.')
-                    return
-                  }
-                  setError('')
-                  update({ [key]: value })
-                }}
-              />
-            </label>
-          ))}
-        </div>
+        <PeriodFields
+          from={v.from}
+          to={v.to}
+          onChange={update}
+        />
         <button
           className={buttonClass}
-          onClick={() => {
-            setFilters({ page: 1, limit: 20 })
-            setError('')
-          }}
+          onClick={filterState.reset}
         >
           Limpar filtros
         </button>
-        {error && <p role="alert">{error}</p>}
       </section>
-      {query.isPending ? (
+      {filterState.invalidPeriod ? (
+        <p role="status">Corrija o período para consultar os agendamentos.</p>
+      ) : query.isPending ? (
         <p role="status">Carregando agendamentos...</p>
       ) : query.isError ? (
         <div role="alert">
@@ -433,7 +442,7 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
           </div>
         </>
       )}
-      {query.data && query.data.meta.totalPages > 1 && (
+      {!filterState.invalidPeriod && query.data && query.data.meta.totalPages > 1 && (
         <nav
           aria-label="Paginação de agendamentos"
           className="flex flex-wrap items-center justify-between gap-3"
@@ -447,7 +456,7 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
               type="button"
               className={compactButtonClass}
               disabled={filters.page === 1 || query.isFetching}
-              onClick={() => setFilters((f) => ({ ...f, page: f.page! - 1 }))}
+              onClick={() => update({ page: String(filters.page! - 1) })}
             >
               Anterior
             </button>
@@ -455,7 +464,7 @@ function AppointmentList({ clinic, create }: { clinic: string; create: boolean }
               type="button"
               className={compactButtonClass}
               disabled={filters.page! >= query.data.meta.totalPages || query.isFetching}
-              onClick={() => setFilters((f) => ({ ...f, page: f.page! + 1 }))}
+              onClick={() => update({ page: String(filters.page! + 1) })}
             >
               Próxima
             </button>

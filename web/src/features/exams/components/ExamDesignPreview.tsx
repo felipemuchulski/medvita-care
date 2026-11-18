@@ -19,6 +19,7 @@ const previewTypes: ExamType[] = [
 
 export default function ExamDesignPreview() {
   const [view, setView] = useState<'list' | 'request' | 'result'>('list')
+  const [resetKey, setResetKey] = useState(0)
   const [filters, setFilters] = useState(new URLSearchParams())
   const {
     register,
@@ -72,10 +73,23 @@ export default function ExamDesignPreview() {
       {view === 'list' && (
         <>
           <ExamFilters
-            key={filters.toString()}
-            params={filters}
+            resetKey={resetKey}
+            values={Object.fromEntries(filters)}
             types={previewTypes}
-            onApply={setFilters}
+            onChange={(patch) =>
+              setFilters((previous) => {
+                const next = new URLSearchParams(previous)
+                for (const [key, value] of Object.entries(patch)) {
+                  if (value) next.set(key, value)
+                  else next.delete(key)
+                }
+                return next
+              })
+            }
+            onClear={() => {
+              setFilters(new URLSearchParams())
+              setResetKey((key) => key + 1)
+            }}
           />
           <p className="rounded-xl border border-dashed border-border p-6 text-sm text-text-secondary">
             Nenhum dado clínico é carregado nesta prévia. Abra “Solicitação de exame” ou

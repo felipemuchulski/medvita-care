@@ -1,5 +1,6 @@
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { ArrowLeft, Pencil } from 'lucide-react'
-import { Link, Navigate, useLocation, useParams } from 'react-router'
+import { Navigate, useLocation, useParams } from 'react-router'
 import { isApiError } from '../../../api/api-error'
 import { canReadClinicalRecords } from '../../medical-records/lib/encounter'
 import { useClinic } from '../../../hooks/use-clinic'

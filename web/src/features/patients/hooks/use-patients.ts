@@ -15,7 +15,7 @@ export const patientKeys = {
 export function usePatients(clinicId: string | null, query: PatientsQuery) {
   return useAuthorizedQuery({
     queryKey: clinicId ? patientKeys.list(clinicId, query) : ['patients', 'disabled'],
-    queryFn: () => patientsApi.list(clinicId!, query),
+    queryFn: ({ signal }) => patientsApi.list(clinicId!, query, signal),
     enabled: Boolean(clinicId),
   })
 }

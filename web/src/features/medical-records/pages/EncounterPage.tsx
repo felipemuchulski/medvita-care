@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
+import { useParams } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import { buttonClass } from '../../appointments/components/Selectors'

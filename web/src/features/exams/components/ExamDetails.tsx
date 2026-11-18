@@ -1,5 +1,6 @@
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useLocation } from 'react-router'
 import { buttonClass, inputClass } from '../../appointments/components/Selectors'
 import { ClinicalDialog } from '../../medical-records/components/ClinicalDialog'
 import { useExamMutations } from '../hooks/use-exams'

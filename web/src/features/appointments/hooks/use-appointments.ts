@@ -8,11 +8,11 @@ export const appointmentKeys = {
     ['appointments', clinic, 'list', query] as const,
   detail: (clinic: string, id: string) => ['appointments', clinic, 'detail', id] as const,
 }
-export function useAppointments(clinic: string, query: AppointmentQuery) {
+export function useAppointments(clinic: string, query: AppointmentQuery, enabled = true) {
   return useAuthorizedQuery({
     queryKey: appointmentKeys.list(clinic, query),
     queryFn: ({ signal }) => appointmentsApi.list(clinic, query, signal),
-    enabled: !!clinic,
+    enabled: !!clinic && enabled,
   })
 }
 export function useAppointment(clinic: string, id: string) {

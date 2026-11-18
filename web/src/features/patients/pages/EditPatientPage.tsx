@@ -1,4 +1,4 @@
-import { Navigate, useNavigate, useParams } from 'react-router'
+import { Navigate, useNavigate, useParams, useLocation } from 'react-router'
 import { useClinic } from '../../../hooks/use-clinic'
 import PatientForm from '../components/PatientForm'
 import PatientsUnavailable from '../components/PatientsUnavailable'
@@ -10,6 +10,7 @@ export default function EditPatientPage() {
   const { patientId } = useParams()
   const { activeClinicId, activeRole } = useClinic()
   const navigate = useNavigate()
+  const location = useLocation()
   const patientQuery = usePatient(activeClinicId, patientId)
 
   if (!activeClinicId) return <PatientsUnavailable />
@@ -52,7 +53,7 @@ export default function EditPatientPage() {
       patientId={patientId}
       patient={patientQuery.data}
       onUpdated={() =>
-        navigate(`/pacientes/${patientId}`, {
+        navigate(`/pacientes/${patientId}${location.search}`, {
           replace: true,
           state: { notice: 'Cadastro atualizado com sucesso.' },
         })
@@ -73,6 +74,7 @@ function EditPatientContent({
   onUpdated: () => void
 }) {
   const mutation = useUpdatePatient(clinicId, patientId)
+  const location = useLocation()
   async function update(payload: PatientPayload): Promise<void> {
     await mutation.mutateAsync(payload)
     onUpdated()
@@ -88,7 +90,7 @@ function EditPatientContent({
       <PatientForm
         patient={patient}
         submitLabel="Salvar alterações"
-        cancelTo={`/pacientes/${patientId}`}
+        cancelTo={`/pacientes/${patientId}${location.search}`}
         onSubmit={update}
       />
     </div>

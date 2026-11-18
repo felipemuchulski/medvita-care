@@ -1,10 +1,25 @@
 import { useId } from 'react'
-import { useSearchParams } from 'react-router'
+import { filterRule, useUrlFilters } from '../../../lib/list-filters'
 import { useClinic } from '../../../hooks/use-clinic'
 import { ProfessionalSelector, inputClass } from '../../appointments/components/Selectors'
 import { canCreate, statusLabels } from '../../appointments/lib/appointment'
 import type { AppointmentStatus } from '../../appointments/types/appointment'
 import { FullCalendarView } from '../components/FullCalendarView'
+
+const rules = {
+  professional: filterRule.uuid,
+  status: filterRule.enum(Object.keys(statusLabels)),
+  date: filterRule.date,
+  view: filterRule.enum([
+    'week',
+    'day',
+    'dayGridMonth',
+    'timeGridWeek',
+    'timeGridDay',
+    'listWeek',
+    'listDay',
+  ]),
+}
 
 export default function CalendarPage() {
   const clinic = useClinic()
@@ -26,22 +41,10 @@ export default function CalendarPage() {
 }
 function Calendar({ clinic, manage }: { clinic: string; manage: boolean }) {
   const statusId = useId()
-  const [params, setParams] = useSearchParams()
-  const requestedStatus = params.get('status') ?? ''
-  const status = Object.hasOwn(statusLabels, requestedStatus)
-    ? (requestedStatus as AppointmentStatus)
-    : undefined
-  const professionalId = params.get('professional') ?? ''
-  function update(values: Record<string, string>) {
-    setParams((previous) => {
-      const next = new URLSearchParams(previous)
-      for (const [key, value] of Object.entries(values)) {
-        if (value) next.set(key, value)
-        else next.delete(key)
-      }
-      return next
-    })
-  }
+  const filters = useUrlFilters(rules)
+  const status = (filters.values.status || undefined) as AppointmentStatus | undefined
+  const professionalId = filters.values.professional || ''
+  const update = filters.update
   return (
     <div className="min-w-0 space-y-5">
       <header>

@@ -1,9 +1,11 @@
-import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
+import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
+import { Navigate, useLocation, useParams, useSearchParams } from 'react-router'
 import { lazy, Suspense, useState } from 'react'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import { buttonClass } from '../../appointments/components/Selectors'
-import { canAccessExams, canPreviewExams, examError } from '../lib/exam'
+import { canAccessExams, canPreviewExams, examError, examStatusLabels } from '../lib/exam'
 import { useExam, useExams, useExamTypes } from '../hooks/use-exams'
 import { ExamFilters } from '../components/ExamFilters'
 import { ExamList } from '../components/ExamList'
@@ -14,6 +16,17 @@ import type { ExamStatus } from '../types/exam'
 const ExamDesignPreview = import.meta.env.DEV
   ? lazy(() => import('../components/ExamDesignPreview'))
   : null
+
+const listRules = {
+  page: filterRule.page,
+  search: filterRule.search,
+  patientId: filterRule.uuid,
+  encounterId: filterRule.uuid,
+  examTypeId: filterRule.uuid,
+  status: filterRule.enum(Object.keys(examStatusLabels)),
+  from: filterRule.date,
+  to: filterRule.date,
+}
 
 export default function ExamsPage() {
   const { user } = useAuth()
@@ -152,27 +165,29 @@ function Detail({ clinic, user, id }: { clinic: string; user: string; id: string
   )
 }
 function List({ clinic, user }: { clinic: string; user: string }) {
-  const [params, setParams] = useSearchParams()
+  const filters = useUrlFilters(listRules, { page: '1', from: '', to: '', search: '' })
+  const v = filters.values
   const types = useExamTypes(clinic, user)
-  const rawPage = Number(params.get('page') || 1)
-  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
-  const patient = params.get('patientId') || undefined
-  const encounter = params.get('encounterId') || undefined
-  const query = useExams(clinic, user, {
-    page,
-    limit: 20,
-    patientId: patient,
-    encounterId: encounter,
-    search: params.get('search') || undefined,
-    examTypeId: params.get('examTypeId') || undefined,
-    status: (params.get('status') || undefined) as ExamStatus | undefined,
-    from: params.get('from') ? `${params.get('from')}T00:00:00-03:00` : undefined,
-    to: params.get('to') ? `${params.get('to')}T23:59:59.999-03:00` : undefined,
-  })
+  const page = Number(v.page)
+  const patient = v.patientId || undefined
+  const encounter = v.encounterId || undefined
+  const query = useExams(
+    clinic,
+    user,
+    {
+      page,
+      limit: 20,
+      patientId: patient,
+      encounterId: encounter,
+      search: v.search || undefined,
+      examTypeId: v.examTypeId || undefined,
+      status: (v.status || undefined) as ExamStatus | undefined,
+      ...periodQuery(v.from, v.to),
+    },
+    !filters.invalidPeriod,
+  )
   function changePage(nextPage: number) {
-    const next = new URLSearchParams(params)
-    next.set('page', String(nextPage))
-    setParams(next)
+    filters.update({ page: String(nextPage) })
   }
   const createParams = new URLSearchParams()
   if (patient) createParams.set('patientId', patient)
@@ -203,7 +218,7 @@ function List({ clinic, user }: { clinic: string; user: string }) {
           {encounter ? ' e pelo atendimento selecionado' : ''}.
         </p>
       )}
-      {types.isError ? (
+      {types.isError && (
         <div
           role="alert"
           className="space-y-3"
@@ -217,15 +232,17 @@ function List({ clinic, user }: { clinic: string; user: string }) {
             Recarregar tipos de exame
           </button>
         </div>
-      ) : (
-        <ExamFilters
-          key={params.toString()}
-          params={params}
-          types={types.data || []}
-          onApply={setParams}
-        />
       )}
-      {query.isPending ? (
+      <ExamFilters
+        values={v}
+        resetKey={filters.resetKey}
+        types={types.data || []}
+        onChange={filters.update}
+        onClear={filters.reset}
+      />
+      {filters.invalidPeriod ? (
+        <p role="status">Corrija o período para consultar os exames.</p>
+      ) : query.isPending ? (
         <p role="status">Carregando exames...</p>
       ) : query.isError ? (
         <div
@@ -251,7 +268,7 @@ function List({ clinic, user }: { clinic: string; user: string }) {
       ) : (
         <ExamList exams={query.data.data} />
       )}
-      {query.data && query.data.meta.totalPages > 1 && (
+      {!filters.invalidPeriod && query.data && query.data.meta.totalPages > 1 && (
         <nav
           aria-label="Paginação de exames"
           className="flex flex-wrap items-center gap-3"

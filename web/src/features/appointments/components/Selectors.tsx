@@ -1,6 +1,7 @@
 import { useAuthorizedQuery } from '../../../lib/authorized-query'
 import { useId, useState, type Ref } from 'react'
 import { patientsApi } from '../../patients/api/patients-api'
+import { SearchField } from '../../../components/filters/SearchField'
 import { useProfessionals } from '../../professionals/hooks/use-professionals'
 
 export const inputClass =
@@ -18,6 +19,8 @@ export function PatientSelector({
   invalid = false,
   describedBy,
   selectRef,
+  searchValue,
+  onSearchChange,
 }: {
   clinic: string
   value: string
@@ -26,53 +29,39 @@ export function PatientSelector({
   invalid?: boolean
   describedBy?: string
   selectRef?: Ref<HTMLSelectElement>
+  searchValue?: string
+  onSearchChange?: (value: string) => void
 }) {
   const patientId = useId()
-  const searchId = useId()
   const [selectedLabel, setSelectedLabel] = useState('')
-  const [draft, setDraft] = useState('')
-  const [search, setSearch] = useState('')
+  const [localSearch, setSearch] = useState('')
+  const search = searchValue ?? localSearch
   const [page, setPage] = useState(1)
   const query = useAuthorizedQuery({
     queryKey: ['appointment-patients', clinic, search, page, activeOnly],
-    queryFn: () =>
-      patientsApi.list(clinic, {
-        search,
-        page,
-        limit: 10,
-        active: activeOnly ? true : undefined,
-      }),
+    queryFn: ({ signal }) =>
+      patientsApi.list(
+        clinic,
+        {
+          search,
+          page,
+          limit: 10,
+          active: activeOnly ? true : undefined,
+        },
+        signal,
+      ),
   })
   return (
     <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
-      <div className="form-field">
-        <label
-          htmlFor={searchId}
-          className="block font-medium"
-        >
-          Buscar paciente
-        </label>
-        <div className="flex gap-2">
-          <input
-            id={searchId}
-            aria-label="Pesquisar paciente por nome ou CPF"
-            className={inputClass}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Nome ou CPF"
-          />
-          <button
-            type="button"
-            className={compactButtonClass}
-            onClick={() => {
-              setSearch(draft.trim())
-              setPage(1)
-            }}
-          >
-            Buscar
-          </button>
-        </div>
-      </div>
+      <SearchField
+        label="Buscar paciente por nome ou CPF"
+        value={search}
+        onChange={(value) => {
+          if (onSearchChange) onSearchChange(value)
+          else setSearch(value)
+          setPage(1)
+        }}
+      />
       <div className="form-field">
         <label
           htmlFor={patientId}

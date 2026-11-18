@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { buttonClass } from '../../appointments/components/Selectors'
 import { formatAppointment } from '../../appointments/lib/appointment'
 import type { Encounter } from '../types/encounter'

@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { buttonClass } from '../../appointments/components/Selectors'
 import { examDate, lateralityLabels } from '../lib/exam'
 import type { ExamSummary } from '../types/exam'

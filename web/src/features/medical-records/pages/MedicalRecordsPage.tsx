@@ -1,6 +1,8 @@
-import { lazy, Suspense, useState } from 'react'
-import { defaultOffset, toIso } from '../../appointments/lib/appointment'
-import { Link, useParams } from 'react-router'
+import { FilterLink as Link } from '../../../components/filters/FilterLink'
+import { lazy, Suspense } from 'react'
+import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
+import { PeriodFields } from '../../../components/filters/PeriodFields'
+import { useParams } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import {
@@ -22,6 +24,16 @@ import { EncounterList } from '../components/EncounterList'
 const ClinicalDesignPreview = import.meta.env.DEV
   ? lazy(() => import('../components/ClinicalDesignPreview'))
   : null
+
+const listRules = {
+  page: filterRule.page,
+  patientId: filterRule.uuid,
+  professionalId: filterRule.uuid,
+  patientSearch: filterRule.search,
+  status: filterRule.enum(Object.keys(encounterLabels)),
+  from: filterRule.date,
+  to: filterRule.date,
+}
 
 export default function MedicalRecordsPage() {
   const clinic = useClinic()
@@ -60,12 +72,17 @@ export default function MedicalRecordsPage() {
 }
 function Records({ clinic, user }: { clinic: string; user: string }) {
   const { patientId } = useParams()
-  const [patient, setPatient] = useState('')
-  const [page, setPage] = useState(1)
-  const [status, setStatus] = useState<EncounterStatus | ''>('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
-  const invalidPeriod = Boolean(from && to && from > to)
+  const filters = useUrlFilters(listRules, {
+    page: '1',
+    from: '',
+    to: '',
+    patientSearch: '',
+    status: '',
+    patientId: '',
+  })
+  const { patientId: patient, status, from, to } = filters.values
+  const page = Number(filters.values.page)
+  const invalidPeriod = filters.invalidPeriod
   const query = useEncounters(
     clinic,
     user,
@@ -73,11 +90,9 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
       page,
       limit: 20,
       patientId: patient || undefined,
-      status: status || undefined,
-      from: from ? toIso(`${from}T00:00`, defaultOffset) : undefined,
-      to: to
-        ? toIso(`${to}T23:59`, defaultOffset).replace(':00-03:00', ':59.999-03:00')
-        : undefined,
+      status: (status || undefined) as EncounterStatus | undefined,
+      professionalId: filters.values.professionalId || undefined,
+      ...periodQuery(from, to),
     },
     patientId,
     !invalidPeriod,
@@ -133,12 +148,12 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
         {!history && (
           <>
             <PatientSelector
+              key={filters.resetKey}
+              searchValue={filters.values.patientSearch}
+              onSearchChange={(value) => filters.update({ patientSearch: value }, true)}
               clinic={clinic}
               value={patient}
-              onChange={(value) => {
-                setPatient(value)
-                setPage(1)
-              }}
+              onChange={(value) => filters.update({ patientId: value })}
             />
             {patient && (
               <Link
@@ -156,10 +171,7 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
             aria-label="Status do atendimento"
             className={inputClass}
             value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as EncounterStatus | '')
-              setPage(1)
-            }}
+            onChange={(event) => filters.update({ status: event.target.value })}
           >
             <option value="">Todos</option>
             {Object.entries(encounterLabels).map(([value, label]) => (
@@ -172,44 +184,17 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
             ))}
           </select>
         </label>
-        <div className="grid min-w-0 gap-4 sm:grid-cols-2 md:col-span-2">
-          <label className="form-field">
-            <span>Início do período (data do atendimento)</span>
-            <input
-              type="date"
-              className={inputClass}
-              value={from}
-              max={to || undefined}
-              onChange={(event) => {
-                setFrom(event.target.value)
-                setPage(1)
-              }}
-            />
-          </label>
-          <label className="form-field">
-            <span>Fim do período</span>
-            <input
-              type="date"
-              className={inputClass}
-              value={to}
-              min={from || undefined}
-              onChange={(event) => {
-                setTo(event.target.value)
-                setPage(1)
-              }}
-            />
-          </label>
+        <div className="md:col-span-2">
+          <PeriodFields
+            from={from}
+            to={to}
+            onChange={filters.update}
+          />
         </div>
         <button
           type="button"
           className={`${buttonClass} justify-self-start`}
-          onClick={() => {
-            setStatus('')
-            setFrom('')
-            setTo('')
-            setPatient('')
-            setPage(1)
-          }}
+          onClick={filters.reset}
         >
           Limpar filtros
         </button>
@@ -247,7 +232,7 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
           history={history}
         />
       )}
-      {query.data && query.data.meta.totalPages > 1 && (
+      {!invalidPeriod && query.data && query.data.meta.totalPages > 1 && (
         <nav
           aria-label="Paginação de atendimentos"
           className="flex flex-wrap items-center gap-3"
@@ -255,7 +240,7 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
           <button
             className={buttonClass}
             disabled={page <= 1 || query.isFetching}
-            onClick={() => setPage((p) => p - 1)}
+            onClick={() => filters.update({ page: String(page - 1) })}
           >
             Anterior
           </button>
@@ -265,7 +250,7 @@ function Records({ clinic, user }: { clinic: string; user: string }) {
           <button
             className={buttonClass}
             disabled={page >= query.data.meta.totalPages || query.isFetching}
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => filters.update({ page: String(page + 1) })}
           >
             Próxima
           </button>
