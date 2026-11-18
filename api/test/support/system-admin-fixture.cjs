@@ -34,7 +34,7 @@ for (const [dir, service, controller, file, model, entityFile] of modules) {
 entity.ExamType = load("exams/entities/exam-type.entity").ExamType;
 DataSource.prototype.initialize = async () => { throw new Error("Database forbidden in A02 tests"); };
 
-async function fixture(t) {
+async function fixture(t, { transactional = false } = {}) {
   const profileWrites = [];
   const maps = new Map(Object.values(entity).map(C => [C, new Map()]));
   const rows = name => maps.get(entity[name]);
@@ -88,12 +88,70 @@ async function fixture(t) {
   const repos = new Map();
   const matches = (row, where = {}) => Object.entries(where).every(([k, v]) => row[k] === v);
   const manager = { getRepository: C => repos.get(C), transaction: callback => callback(manager) };
+  const locks = new Map(), lockEvents = [];
+  let failAudit = false;
+  // Optional deterministic row-lock/rollback simulator. No database is initialized.
+  // Used only for same-appointment interleavings, not a PostgreSQL substitute.
+  if (transactional) manager.transaction = async callback => {
+    let release, snapshot;
+    async function lock(id, mode) {
+      if (release) return;
+      if (mode !== "pessimistic_write") throw new Error("Expected appointment write lock");
+      lockEvents.push({ id, phase: "waiting", mode });
+      const previous = locks.get(id) ?? Promise.resolve();
+      let unlock;
+      const next = new Promise(resolve => { unlock = resolve; });
+      locks.set(id, next);
+      await previous;
+      release = () => { unlock(); if (locks.get(id) === next) locks.delete(id); };
+      snapshot = new Map([...maps].map(([C, table]) => [C, structuredClone([...table])]));
+      lockEvents.push({ id, phase: "acquired", mode });
+    }
+    const tx = { getRepository(C) {
+      const repo = repos.get(C);
+      if (C !== entity.Appointment) return repo;
+      return new Proxy(repo, { get(target, property) {
+        if (property === "findOne") return async options => {
+          if (options.lock) await lock(options.where.id, options.lock.mode);
+          return target.findOne(options);
+        };
+        if (property === "createQueryBuilder") return (...args) => {
+          const query = target.createQueryBuilder(...args), params = {};
+          let mode;
+          const proxy = new Proxy(query, { get(q, key) {
+            if (key === "getOne") return async () => {
+              if (mode) await lock(params.appointmentId ?? params.id, mode);
+              return q.getOne();
+            };
+            if (typeof q[key] !== "function") return q[key];
+            return (...values) => {
+              if (key === "setLock") mode = values[0];
+              if (["where", "andWhere"].includes(key)) Object.assign(params, values[1]);
+              const result = q[key](...values);
+              return result === q ? proxy : result;
+            };
+          } });
+          return proxy;
+        };
+        const value = target[property];
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
+    } };
+    try { return await callback(tx); }
+    catch (error) {
+      if (snapshot) for (const [C, data] of snapshot) {
+        const table = maps.get(C); table.clear();
+        for (const [id, row] of data) table.set(id, Object.assign(new C(), row));
+      }
+      throw error;
+    } finally { release?.(); }
+  };
   for (const C of Object.values(entity)) {
     const table = maps.get(C);
     const repo = {
       manager,
       create: value => Object.assign(new C(), { active: true, tokenVersion: 0, isSystemAdmin: false }, value),
-      async save(value) { if (C === entity.ProfessionalProfile) profileWrites.push(value.id ?? "new"); value.id ??= randomUUID(); value.createdAt ??= new Date(); value.updatedAt = new Date(); table.set(value.id, value); return value; },
+      async save(value) { if (C === entity.AuditLog && failAudit) { failAudit = false; throw new Error("Synthetic audit write failure"); } if (C === entity.ProfessionalProfile) profileWrites.push(value.id ?? "new"); value.id ??= randomUUID(); value.createdAt ??= new Date(); value.updatedAt = new Date(); table.set(value.id, value); return value; },
       async findOneBy(where) { return hydrate(C, [...table.values()].find(r => matches(r, where))); },
       async findOne({ where }) { return this.findOneBy(where); },
       async find({ where } = {}) { return [...table.values()].filter(r => matches(r, where)).map(r => hydrate(C, r)); },
@@ -103,7 +161,8 @@ async function fixture(t) {
         const params = {}, expressions = []; let offset = 0, limit = Infinity;
         function accepted(row) {
           if (params.clinicId && row.clinicId !== undefined && row.clinicId !== params.clinicId) return false;
-          for (const key of ["id", "patientId", "status", "crm", "crmState", "userId", "appointmentId"]) {
+          if (params.appointmentId && (C === entity.Appointment ? row.id : row.appointmentId) !== params.appointmentId) return false;
+          for (const key of ["id", "patientId", "status", "crm", "crmState", "userId"]) {
             if (params[key] !== undefined && row[key] !== params[key]) return false;
           }
           if (C === entity.ProfessionalProfile) {
@@ -168,7 +227,8 @@ async function fixture(t) {
   const write = (method, url, user, body) => http[method](url).auth(token(user), { type: "bearer" }).send(body);
   const principal = user => ({ sub: user.id, isSystemAdmin: user.isSystemAdmin,
     clinicRoles: [...rows("ClinicUser").values()].filter(m => m.userId === user.id && m.active && rows("Clinic").get(m.clinicId)?.active).map(m => ({ clinicId: m.clinicId, role: m.role })) });
-  return { profileWrites, a, b, actors, rows, put, actor, token, http, get, write, values, principal, patientA, patientB };
+  return { profileWrites, a, b, actors, rows, put, actor, token, http, get, write, values, principal, patientA, patientB,
+    lockEvents, failNextAudit: () => { failAudit = true; } };
 }
 
 

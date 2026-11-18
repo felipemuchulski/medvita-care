@@ -85,8 +85,10 @@ test("A02 HTTP: global flag does not elevate clinical write permissions or local
   await f.write("post", `/clinics/${f.a}/appointments`, global, payload).expect(403);
   const created = (await f.write("post", `/clinics/${f.a}/appointments`, doctor, payload).expect(201)).body;
   await f.write("post", `/clinics/${f.a}/appointments`, doctor, { ...payload, professionalId: other.id }).expect(403);
-  await f.write("patch", `/clinics/${f.a}/appointments/${created.id}/cancel`, doctor, { reason: "Motivo sintético" }).expect(403);
-  await f.write("patch", `/clinics/${f.a}/appointments/${created.id}/reschedule`, doctor, { scheduledAt: payload.scheduledAt }).expect(403);
+  const otherAppointment = [...f.rows("Appointment").values()].find(a => a.professionalId === other.id);
+  await f.write("patch", `/clinics/${f.a}/appointments/${otherAppointment.id}/cancel`, doctor, { reason: "Motivo sintético" }).expect(403);
+  await f.write("patch", `/clinics/${f.a}/appointments/${otherAppointment.id}/reschedule`, doctor, { scheduledAt: payload.scheduledAt }).expect(403);
+  await f.write("patch", `/clinics/${f.a}/appointments/${created.id}/reschedule`, doctor, { scheduledAt: payload.scheduledAt }).expect(200);
   for (const actor of [global, admin]) {
     await f.write("post", `/clinics/${f.a}/encounters`, actor, { appointmentId: created.id }).expect(403);
     await f.write("post", `/clinics/${f.a}/exams`, actor, {}).expect(403);

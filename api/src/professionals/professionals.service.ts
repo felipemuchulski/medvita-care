@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, SelectQueryBuilder } from "typeorm";
+import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { ClinicUsersService } from "src/clinic-users/clinic-users.service";
 import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
 import { ClinicService } from "src/clinics/clinics.service";
@@ -86,9 +86,14 @@ export class ProfessionalsService {
   async findActiveForClinic(
     clinicId: string,
     professionalId: string,
+    manager?: EntityManager,
   ): Promise<ProfessionalProfile> {
-    await this.validateActiveClinic(clinicId);
-    const profile = await this.authorizedProfilesQuery(clinicId)
+    // Transactional callers reuse their connection; the joined clinic must be active.
+    if (!manager) await this.validateActiveClinic(clinicId);
+    const profile = await this.authorizedProfilesQuery(
+      clinicId,
+      manager?.getRepository(ProfessionalProfile),
+    )
       .andWhere("professional.id = :professionalId", { professionalId })
       .getOne();
 
@@ -251,8 +256,9 @@ export class ProfessionalsService {
 
   private authorizedProfilesQuery(
     clinicId: string,
+    repository = this.professionalsRepository,
   ): SelectQueryBuilder<ProfessionalProfile> {
-    return this.professionalsRepository
+    return repository
       .createQueryBuilder("professional")
       .innerJoinAndSelect("professional.user", "user")
       .innerJoin(

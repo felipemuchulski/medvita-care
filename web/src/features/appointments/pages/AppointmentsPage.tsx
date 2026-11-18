@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useClinic } from '../../../hooks/use-clinic'
+import { useAuth } from '../../../hooks/use-auth'
 import { AppointmentStatusBadge } from '../components/AppointmentStatusBadge'
 import { AppointmentForm } from '../components/AppointmentForm'
 import {
@@ -18,8 +19,7 @@ import {
 import {
   appointmentError,
   validDate,
-  canChange,
-  canManage,
+  canManageAppointment,
   canCreate,
   formatAppointment,
   statusLabels,
@@ -41,7 +41,6 @@ export default function AppointmentsPage() {
     <AppointmentScreen
       key={`${activeClinicId}:${activeRole}`}
       clinic={activeClinicId}
-      manage={canManage(activeRole)}
       create={canCreate(activeRole)}
     />
   )
@@ -59,15 +58,9 @@ function Frame({ children }: { children: ReactNode }) {
     </div>
   )
 }
-function AppointmentScreen({
-  clinic,
-  manage,
-  create,
-}: {
-  clinic: string
-  manage: boolean
-  create: boolean
-}) {
+function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean }) {
+  const { user } = useAuth()
+  const { activeRole, activeClinicId } = useClinic()
   const { appointmentId = '' } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -140,7 +133,7 @@ function AppointmentScreen({
       </Frame>
     )
   const a = detail.data
-  const allowed = manage && canChange(a)
+  const allowed = canManageAppointment(a, activeRole, user?.id, activeClinicId)
   return (
     <Frame>
       <h1 className="text-2xl font-bold">

@@ -283,14 +283,21 @@ export class AppointmentsService {
     dto: RescheduleAppointmentDto,
     currentUser: AuthenticatedUser,
   ) {
-    this.assertClinicRole(currentUser, clinicId, [
+    const role = this.assertClinicRole(currentUser, clinicId, [
       ClinicUserRole.ADMIN,
       ClinicUserRole.RECEPTIONIST,
+      ClinicUserRole.OPHTHALMOLOGIST,
     ]);
     try {
       await this.appointmentsRepository.manager.transaction(async (manager) => {
         const repository = manager.getRepository(Appointment);
         const appointment = await this.findLocked(repository, clinicId, id);
+        await this.assertCanChangeOwnAppointment(
+          appointment,
+          role,
+          currentUser,
+          manager,
+        );
         this.assertSchedulable(appointment, "reagendar");
         await this.assertNoEncounter(manager, appointment.id, "reagendar");
         const previousScheduledAt = appointment.scheduledAt;
@@ -342,13 +349,20 @@ export class AppointmentsService {
     dto: CancelAppointmentDto,
     currentUser: AuthenticatedUser,
   ) {
-    this.assertClinicRole(currentUser, clinicId, [
+    const role = this.assertClinicRole(currentUser, clinicId, [
       ClinicUserRole.ADMIN,
       ClinicUserRole.RECEPTIONIST,
+      ClinicUserRole.OPHTHALMOLOGIST,
     ]);
     await this.appointmentsRepository.manager.transaction(async (manager) => {
       const repository = manager.getRepository(Appointment);
       const appointment = await this.findLocked(repository, clinicId, id);
+      await this.assertCanChangeOwnAppointment(
+        appointment,
+        role,
+        currentUser,
+        manager,
+      );
       this.assertSchedulable(appointment, "cancelar");
       await this.assertNoEncounter(manager, appointment.id, "cancelar");
       const previousStatus = appointment.status;
@@ -415,6 +429,28 @@ export class AppointmentsService {
       );
     }
     return appointment;
+  }
+
+  private async assertCanChangeOwnAppointment(
+    appointment: Appointment,
+    role: ClinicUserRole,
+    currentUser: AuthenticatedUser,
+    manager: EntityManager,
+  ): Promise<void> {
+    if (role !== ClinicUserRole.OPHTHALMOLOGIST) return;
+
+    // Resolve the stored assignment, never an identifier supplied in the body.
+    // Eligibility also verifies active user, clinic and ophthalmologist membership.
+    const professional = await this.professionalsService.findActiveForClinic(
+      appointment.clinicId,
+      appointment.professionalId,
+      manager,
+    );
+    if (professional.userId !== currentUser.sub) {
+      throw new ForbiddenException(
+        "O profissional só pode alterar agendamentos na própria agenda.",
+      );
+    }
   }
 
   private assertSchedulable(appointment: Appointment, action: string): void {

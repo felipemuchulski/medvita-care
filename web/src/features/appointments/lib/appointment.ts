@@ -20,6 +20,20 @@ export function canCreate(role: ClinicRole | null) {
 export function canChange(a: Appointment) {
   return ["SCHEDULED", "CONFIRMED"].includes(a.status) && !a.encounter;
 }
+export function canManageAppointment(
+  a: Appointment,
+  role: ClinicRole | null,
+  userId: string | undefined,
+  clinicId: string | null,
+) {
+  if (!userId || !clinicId || a.clinicId !== clinicId || !canChange(a)) return false;
+  return (
+    canManage(role) ||
+    (role === "OPHTHALMOLOGIST" &&
+      a.professional.id === a.professionalId &&
+      a.professional.userId === userId)
+  );
+}
 export function toIso(local: string, offset: string) {
   if (
     !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local) ||

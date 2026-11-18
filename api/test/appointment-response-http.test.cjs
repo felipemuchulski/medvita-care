@@ -212,7 +212,7 @@ for (const role of ["ADMIN", "RECEPTIONIST", "OPHTHALMOLOGIST"]) {
   });
 }
 
-for (const role of ["ADMIN", "RECEPTIONIST"]) {
+for (const role of ["ADMIN", "RECEPTIONIST", "OPHTHALMOLOGIST"]) {
   test(`${role}: create/reschedule/cancel serialize the same safe response`, async t => {
     const f = await fixture(t), access = f.token(role);
     const created = await f.http("post", f.base, access, {
@@ -265,13 +265,14 @@ test("ophthalmologist can create, start, read and complete own encounter through
   await f.http("get", `/clinics/${f.clinic}/encounters/${id}`, otherDoctor).expect(404);
 });
 
-test("existing JWT, tenant, ownership and reschedule/cancel role restrictions remain enforced", async t => {
+test("existing JWT, tenant and reschedule/cancel ownership restrictions remain enforced", async t => {
   const f = await fixture(t), access = f.token("OPHTHALMOLOGIST");
   await f.http("get", `${f.base}/${f.appointmentId}`).expect(401);
   await f.http("get", `/clinics/${randomUUID()}/appointments/${f.appointmentId}`, access).expect(403);
   await f.http("get", `${f.base}/${f.appointmentId}`, f.token("OPHTHALMOLOGIST", randomUUID())).expect(404);
-  await f.http("patch", `${f.base}/${f.appointmentId}/reschedule`, access, { scheduledAt: f.future.toISOString() }).expect(403);
-  await f.http("patch", `${f.base}/${f.appointmentId}/cancel`, access, { reason: "Motivo sintético" }).expect(403);
+  const other = f.token("OPHTHALMOLOGIST", randomUUID());
+  await f.http("patch", `${f.base}/${f.appointmentId}/reschedule`, other, { scheduledAt: f.future.toISOString() }).expect(403);
+  await f.http("patch", `${f.base}/${f.appointmentId}/cancel`, other, { reason: "Motivo sintético" }).expect(403);
   assert.equal(f.events.length, 0);
 });
 

@@ -90,7 +90,12 @@ export class AppointmentsController {
   }
 
   @Patch(":id/reschedule")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN, ClinicUserRole.RECEPTIONIST)
+  @ClinicRoles(
+    "clinicId",
+    ClinicUserRole.ADMIN,
+    ClinicUserRole.RECEPTIONIST,
+    ClinicUserRole.OPHTHALMOLOGIST,
+  )
   reschedule(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("id", uuidPipe) id: string,
@@ -101,7 +106,12 @@ export class AppointmentsController {
   }
 
   @Patch(":id/cancel")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN, ClinicUserRole.RECEPTIONIST)
+  @ClinicRoles(
+    "clinicId",
+    ClinicUserRole.ADMIN,
+    ClinicUserRole.RECEPTIONIST,
+    ClinicUserRole.OPHTHALMOLOGIST,
+  )
   cancel(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("id", uuidPipe) id: string,
