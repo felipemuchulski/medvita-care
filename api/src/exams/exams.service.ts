@@ -8,7 +8,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Brackets, EntityManager, Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
+import { applyTextSearch } from "src/common/utils/text-search.util";
 import { AuditService } from "../audit/audit.service";
 import { AuditAction } from "../audit/entities/audit-log.entity";
 import { AuthenticatedUser } from "../auth/types/jwt-payload.type";
@@ -170,16 +171,12 @@ export class ExamsService {
     if (query.from)
       builder.andWhere("exam.requestedAt >= :from", { from: query.from });
     if (query.to) builder.andWhere("exam.requestedAt <= :to", { to: query.to });
-    if (query.search) {
-      const search = `%${query.search.replace(/[\\%_]/g, "\\$&")}%`;
-      builder.andWhere(
-        new Brackets((q) =>
-          q
-            .where("patient.name ILIKE :search", { search })
-            .orWhere("type.name ILIKE :search", { search }),
-        ),
-      );
-    }
+    applyTextSearch(
+      builder,
+      ["patient.name", "type.name"],
+      query.search,
+      "patient.cpf",
+    );
     // Results are fetched only in the audited detail endpoint.
     const [data, total] = await builder
       .orderBy("exam.requestedAt", "DESC")

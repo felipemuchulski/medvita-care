@@ -6,7 +6,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Brackets, Repository } from "typeorm";
+import { Repository } from "typeorm";
+import { applyTextSearch } from "src/common/utils/text-search.util";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
 import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
 import { ClinicService } from "src/clinics/clinics.service";
@@ -139,22 +140,12 @@ export class PatientsService {
       });
     }
 
-    if (query.search) {
-      const search = query.search.trim();
-      const cpfSearch = normalizeCpf(search);
-      patientsQuery.andWhere(
-        new Brackets((builder) => {
-          builder.where("patient.name ILIKE :search", {
-            search: `%${search}%`,
-          });
-          if (cpfSearch) {
-            builder.orWhere("patient.cpf LIKE :cpfSearch", {
-              cpfSearch: `%${cpfSearch}%`,
-            });
-          }
-        }),
-      );
-    }
+    applyTextSearch(
+      patientsQuery,
+      ["patient.name"],
+      query.search,
+      "patient.cpf",
+    );
 
     const [data, total] = await patientsQuery
       .orderBy("patient.name", "ASC")
