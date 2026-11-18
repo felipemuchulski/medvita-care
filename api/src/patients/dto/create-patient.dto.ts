@@ -7,9 +7,15 @@ import {
   IsString,
   Matches,
   MaxLength,
+  MinLength,
+  ValidateBy,
 } from "class-validator";
 import { PatientSex } from "../entities/patient.entity";
 import { IsCpf } from "../utils/is-cpf.validator";
+import {
+  normalizePatientName,
+  isValidPatientPhone,
+} from "../utils/patient-input.util";
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === "string" ? value.trim() : value;
@@ -18,10 +24,17 @@ const uppercase = ({ value }: { value: unknown }) =>
   typeof value === "string" ? value.trim().toUpperCase() : value;
 
 export class CreatePatientDto {
-  @Transform(trim)
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === "string" ? normalizePatientName(value) : value,
+  )
   @IsString()
   @IsNotEmpty()
-  @MaxLength(150)
+  @MinLength(3, {
+    message: "O nome do paciente deve possuir ao menos 3 caracteres.",
+  })
+  @MaxLength(150, {
+    message: "O nome do paciente deve possuir no máximo 150 caracteres.",
+  })
   name: string;
 
   @IsOptional()
@@ -44,6 +57,14 @@ export class CreatePatientDto {
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @ValidateBy({
+    name: "patientPhone",
+    validator: {
+      validate: isValidPatientPhone,
+      defaultMessage: () =>
+        "Informe um telefone brasileiro com 10 ou 11 dígitos.",
+    },
+  })
   phone?: string | null;
 
   @Transform(trim)

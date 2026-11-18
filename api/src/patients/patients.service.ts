@@ -21,6 +21,10 @@ import { isFutureDateOnly, isValidDateOnly } from "./utils/date-only.util";
 import { isValidCpf, normalizeCpf } from "./utils/cpf.util";
 import { AuditService } from "src/audit/audit.service";
 import { AuditAction } from "src/audit/entities/audit-log.entity";
+import {
+  normalizePatientName,
+  isValidPatientPhone,
+} from "./utils/patient-input.util";
 
 const BRAZILIAN_STATES = new Set([
   "AC",
@@ -81,7 +85,7 @@ export class PatientsService {
       cpf,
       birthDate: this.validateBirthDate(dto.birthDate),
       sex: dto.sex ?? null,
-      phone: this.normalizeOptionalText(dto.phone),
+      phone: this.normalizePhone(dto.phone),
       email: this.normalizeOptionalEmail(dto.email),
       zipCode: this.normalizeOptionalZipCode(dto.zipCode),
       street: this.normalizeOptionalText(dto.street),
@@ -219,7 +223,7 @@ export class PatientsService {
     }
     if (dto.sex !== undefined) patient.sex = dto.sex ?? null;
     if (dto.phone !== undefined) {
-      patient.phone = this.normalizeOptionalText(dto.phone);
+      patient.phone = this.normalizePhone(dto.phone);
     }
     if (dto.email !== undefined) {
       patient.email = this.normalizeOptionalEmail(dto.email);
@@ -382,7 +386,24 @@ export class PatientsService {
       throw new BadRequestException("O nome do paciente é obrigatório.");
     }
 
-    return value.trim();
+    const name = normalizePatientName(value);
+    if (Array.from(name).length < 3 || name.length > 150) {
+      throw new BadRequestException(
+        "O nome do paciente deve possuir de 3 a 150 caracteres.",
+      );
+    }
+    return name;
+  }
+
+  private normalizePhone(value?: string | null): string | null {
+    const phone = this.normalizeOptionalText(value);
+    if (phone && (phone.length > 20 || !isValidPatientPhone(phone))) {
+      throw new BadRequestException(
+        "Informe um telefone brasileiro com 10 ou 11 dígitos.",
+      );
+    }
+    // Preserve the existing trimmed text representation, including punctuation.
+    return phone;
   }
 
   private normalizeOptionalText(value?: string | null): string | null {
