@@ -34,25 +34,70 @@ const optionalText = (maximum: number) =>
   z.string().trim().max(maximum, `Use no máximo ${maximum} caracteres.`)
 
 const brazilianStates = new Set([
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
-  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
-  'SP', 'SE', 'TO',
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ])
 
 export const patientSchema = z.object({
-  name: z.string().trim().min(1, 'Informe o nome do paciente.').max(150),
+  name: z
+    .string()
+    .transform((value) => value.trim().replace(/\s+/g, ' '))
+    .pipe(
+      z
+        .string()
+        .refine(
+          (value) => Array.from(value).length >= 3,
+          'Informe um nome com ao menos 3 caracteres.',
+        )
+        .max(150, 'Use no máximo 150 caracteres.'),
+    ),
   cpf: z
     .string()
     .trim()
     .refine((value) => !value || isValidCpf(value), 'Informe um CPF válido.'),
-  birthDate: z.string().refine(isValidDateOnly, 'Informe uma data de nascimento válida e não futura.'),
+  birthDate: z
+    .string()
+    .refine(isValidDateOnly, 'Informe uma data de nascimento válida e não futura.'),
   sex: z.enum(['', 'MALE', 'FEMALE', 'NOT_INFORMED']),
-  phone: optionalText(20),
+  phone: optionalText(20).refine(
+    (value) =>
+      !value ||
+      (/^[\d() .-]+$/.test(value) && [10, 11].includes(value.replace(/\D/g, '').length)),
+    'Informe um telefone brasileiro com 10 ou 11 dígitos.',
+  ),
   email: z
     .string()
     .trim()
     .max(150)
-    .refine((value) => !value || z.email().safeParse(value).success, 'Informe um e-mail válido.'),
+    .refine(
+      (value) => !value || z.email().safeParse(value).success,
+      'Informe um e-mail válido.',
+    ),
   zipCode: z
     .string()
     .trim()
@@ -98,7 +143,7 @@ function optional(value: string): string | null {
 
 export function toPatientPayload(values: PatientFormValues): PatientPayload {
   return {
-    name: values.name.trim(),
+    name: values.name.trim().replace(/\s+/g, ' '),
     cpf: optional(values.cpf)?.replace(/\D/g, '') ?? null,
     birthDate: values.birthDate,
     sex: (values.sex || null) as PatientSex | null,

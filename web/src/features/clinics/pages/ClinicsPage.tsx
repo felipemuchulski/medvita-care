@@ -1,5 +1,6 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation, useParams } from 'react-router'
+import { Link, Navigate, useParams, useLocation } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
 import { buttonClass, inputClass } from '../../appointments/components/Selectors'
@@ -99,7 +100,7 @@ function Detail({
   editing: boolean
 }) {
   const query = useClinicDetails(user, id)
-  const location = useLocation()
+  const notice = useNavigationNotice('clinicSaved', 'Cadastro salvo com sucesso.')
   if (query.isPending) return <p role="status">Carregando clínica...</p>
   if (query.isError)
     return (
@@ -135,7 +136,7 @@ function Detail({
       user={user}
       system={system}
       edit={edit}
-      notice={location.state?.clinicSaved ? 'Cadastro salvo com sucesso.' : undefined}
+      notice={notice || undefined}
     />
   )
 }

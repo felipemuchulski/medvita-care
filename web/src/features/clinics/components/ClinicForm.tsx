@@ -1,3 +1,5 @@
+import { FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,6 +37,7 @@ export function ClinicForm({
   onSaved: (clinic: Clinic) => void
   back: string
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const mutation = useClinicMutations(user)
   const lock = useRef(false)
   const [message, setMessage] = useState('')
@@ -45,6 +48,7 @@ export function ClinicForm({
     setError,
     formState: { errors, isDirty, isSubmitting, dirtyFields },
   } = useForm<ClinicFormInput, unknown, ClinicFormValues>({
+    shouldFocusError: false,
     resolver: zodResolver(clinicSchema),
     defaultValues: {
       name: clinic?.name || '',
@@ -76,6 +80,7 @@ export function ClinicForm({
         },
         { shouldFocus: true },
       )
+      focusErrors()
       return
     }
     const payload: UpdateClinicPayload = {}
@@ -114,6 +119,7 @@ export function ClinicForm({
       onSaved(saved)
     } catch (error) {
       setError('root', { message: clinicError(error) })
+      focusErrors()
     } finally {
       lock.current = false
       mutation.create.reset()
@@ -122,7 +128,8 @@ export function ClinicForm({
   }
   return (
     <form
-      onSubmit={(event) => void handleSubmit(submit)(event)}
+      ref={formRef}
+      onSubmit={(event) => void handleSubmit(submit, focusErrors)(event)}
       className="space-y-5"
       noValidate
       aria-busy={isSubmitting}
@@ -130,6 +137,7 @@ export function ClinicForm({
       <p className="text-sm text-text-secondary">
         Campos marcados com * são obrigatórios.
       </p>
+      <FormErrorSummary errors={errors} />
       <fieldset
         disabled={isSubmitting}
         className="min-w-0 space-y-5"
@@ -140,14 +148,6 @@ export function ClinicForm({
           edit={Boolean(clinic)}
         />
       </fieldset>
-      {errors.root && (
-        <p
-          role="alert"
-          className="text-red-800"
-        >
-          {errors.root.message}
-        </p>
-      )}
       {message && <p role="status">{message}</p>}
       <div className="flex flex-col gap-3 sm:flex-row">
         <button

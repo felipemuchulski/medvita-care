@@ -22,7 +22,7 @@ export function ExamField({
       {error && (
         <p
           id={`${id}-error`}
-          role="alert"
+
           className="text-sm text-red-800"
         >
           {error}

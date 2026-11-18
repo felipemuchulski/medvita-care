@@ -1,6 +1,5 @@
 import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { useRef, useState } from 'react'
-import { useLocation } from 'react-router'
 import { buttonClass, inputClass } from '../../appointments/components/Selectors'
 import { ClinicalDialog } from '../../medical-records/components/ClinicalDialog'
 import { useExamMutations } from '../hooks/use-exams'
@@ -14,15 +13,14 @@ export function ExamDetails({
   clinic,
   user,
   exam,
+  navigationNotice = '',
 }: {
   clinic: string
   user: string
   exam: Exam
+  navigationNotice?: string
 }) {
-  const location = useLocation()
-  const [message, setMessage] = useState(
-    location.state?.created ? 'Exame solicitado com sucesso.' : '',
-  )
+  const [message, setMessage] = useState('')
   const [mode, setMode] = useState<'edit' | 'result' | null>(null)
   const [action, setAction] = useState<'complete' | 'cancel' | null>(null)
   const [reason, setReason] = useState('')
@@ -77,12 +75,12 @@ export function ExamDetails({
           Histórico do paciente
         </Link>
       </div>
-      {message && (
+      {(message || navigationNotice) && (
         <p
           role="status"
           className="rounded-lg bg-primary-light p-3 text-primary"
         >
-          {message}
+          {message || navigationNotice}
         </p>
       )}
       <section

@@ -4,15 +4,18 @@ export function useUnsavedClinicalChanges(
   dirty: boolean,
   saving: boolean,
   message = 'Há alterações clínicas não salvas. Deseja descartá-las e continuar?',
+  completed?: () => boolean,
 ) {
-  const blocker = useBlocker(dirty || saving)
+  const blocker = useBlocker(() => !completed?.() && (dirty || saving))
   useEffect(() => {
     if (!dirty && !saving) return
     const unload = (event: BeforeUnloadEvent) => {
+      if (completed?.()) return
       event.preventDefault()
       event.returnValue = ''
     }
     const changeContext = (event: Event) => {
+      if (completed?.()) return
       if (event.defaultPrevented) return
       if (saving) {
         event.preventDefault()
@@ -30,6 +33,6 @@ export function useUnsavedClinicalChanges(
       window.removeEventListener('medvita:before-clinic-change', changeContext)
       window.removeEventListener('medvita:before-logout', changeContext)
     }
-  }, [dirty, saving, message])
+  }, [dirty, saving, message, completed])
   return blocker
 }

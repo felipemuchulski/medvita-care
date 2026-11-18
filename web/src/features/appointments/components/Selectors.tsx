@@ -153,10 +153,14 @@ export function ProfessionalSelector({
   clinic,
   value,
   onChange,
+  invalid = false,
+  describedBy,
 }: {
   clinic: string
   value: string
   onChange: (id: string) => void
+  invalid?: boolean
+  describedBy?: string
 }) {
   const professionalId = useId()
   const query = useProfessionals(clinic)
@@ -170,6 +174,8 @@ export function ProfessionalSelector({
       </label>
       <select
         id={professionalId}
+        aria-invalid={invalid}
+        aria-describedby={describedBy}
         className={inputClass}
         value={value}
         onChange={(e) => onChange(e.target.value)}

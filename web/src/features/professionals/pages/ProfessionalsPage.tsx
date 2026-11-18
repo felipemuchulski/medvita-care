@@ -1,3 +1,4 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { useClinic } from '../../../hooks/use-clinic'
@@ -51,6 +52,7 @@ function ProfessionalScreen({
 }) {
   const { professionalId = '' } = useParams()
   const location = useLocation()
+  const notice = useNavigationNotice('success')
   const navigate = useNavigate()
   const create = location.pathname.endsWith('/novo')
   const edit = location.pathname.endsWith('/editar')
@@ -148,12 +150,12 @@ function ProfessionalScreen({
         Profissionais
       </Link>
       <h1 className="text-2xl font-bold">Detalhes do profissional</h1>
-      {location.state?.success && (
+      {notice && (
         <p
           role="status"
           className="rounded-lg bg-green-50 p-3 text-green-900"
         >
-          {location.state.success}
+          {notice}
         </p>
       )}
       <article className="space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6">

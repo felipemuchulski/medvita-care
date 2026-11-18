@@ -1,3 +1,4 @@
+import { formApiError } from '../../../lib/form-feedback'
 import { isApiError } from '../../../api/api-error'
 import type { ClinicRole } from '../../auth/types/auth'
 export const canEditClinic = (system: boolean, role?: ClinicRole) =>
@@ -17,7 +18,7 @@ export function clinicError(error: unknown) {
     if (error.status === 403)
       return 'Você não tem permissão para acessar esta clínica ou executar esta ação.'
     if (error.status === 404) return 'Clínica não encontrada ou não disponível para você.'
-    return error.message
+    return formApiError(error)
   }
   return 'Não foi possível consultar ou salvar a clínica. Tente novamente.'
 }

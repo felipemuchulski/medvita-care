@@ -1,3 +1,4 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
 import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { Navigate, useLocation, useParams, useSearchParams } from 'react-router'
@@ -132,6 +133,7 @@ function Create({ clinic, user }: { clinic: string; user: string }) {
   )
 }
 function Detail({ clinic, user, id }: { clinic: string; user: string; id: string }) {
+  const notice = useNavigationNotice('created', 'Exame solicitado com sucesso.')
   const query = useExam(clinic, user, id)
   if (query.isPending) return <p role="status">Carregando exame...</p>
   if (query.isError)
@@ -161,6 +163,7 @@ function Detail({ clinic, user, id }: { clinic: string; user: string; id: string
       clinic={clinic}
       user={user}
       exam={query.data}
+      navigationNotice={notice}
     />
   )
 }

@@ -1,3 +1,5 @@
+import { FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -31,6 +33,7 @@ export function ProfessionalForm({
     payload: Partial<ProfessionalFields> | CreateProfessionalPayload,
   ) => Promise<void>
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const members = useEligibleProfessionalUsers(clinic, !professional)
   const profiles = useProfessionals(clinic)
   const candidates = eligibleMembers(members.data ?? [], profiles.data ?? [], clinic)
@@ -43,6 +46,7 @@ export function ProfessionalForm({
     setError,
     formState: { errors, isSubmitting },
   } = useForm<ProfessionalFormValues, unknown, ProfessionalFields>({
+    shouldFocusError: false,
     resolver: zodResolver(professionalSchema),
     defaultValues: {
       crm: professional?.crm ?? '',
@@ -55,6 +59,7 @@ export function ProfessionalForm({
     if (lock.current) return
     if (!professional && !candidates.some((m) => m.userId === userId)) {
       setError('root', { message: 'Selecione um usuário elegível da clínica.' })
+      focusErrors()
       return
     }
     lock.current = true
@@ -68,20 +73,23 @@ export function ProfessionalForm({
           payload.specialty = fields.specialty
         if (!Object.keys(payload).length) {
           setError('root', { message: 'Nenhuma alteração foi realizada.' })
+          focusErrors()
           return
         }
         await onSave(payload)
       } else await onSave({ ...fields, userId })
     } catch (error) {
       setError('root', { message: professionalError(error) })
+      focusErrors()
     } finally {
       lock.current = false
     }
   }
   return (
     <form
+      ref={formRef}
       noValidate
-      onSubmit={(event) => void handleSubmit(submit)(event)}
+      onSubmit={(event) => void handleSubmit(submit, focusErrors)(event)}
       aria-busy={isSubmitting}
       className="space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6"
     >
@@ -99,6 +107,7 @@ export function ProfessionalForm({
             ' Confira os dados antes de cadastrar: correções posteriores são restritas ao administrador do sistema.'}
         </p>
       </aside>
+      <FormErrorSummary errors={errors} />
       <fieldset
         disabled={isSubmitting}
         className="min-w-0 space-y-5"
@@ -125,7 +134,7 @@ export function ProfessionalForm({
             {members.isPending || profiles.isPending ? (
               <p role="status">Carregando usuários da clínica...</p>
             ) : members.isError || profiles.isError ? (
-              <div role="alert">
+              <div>
                 <p>Não foi possível verificar os usuários elegíveis.</p>
                 <button
                   type="button"
@@ -198,7 +207,7 @@ export function ProfessionalForm({
             {errors.crm && (
               <span
                 id="crm-error"
-                role="alert"
+
                 className="block text-sm text-red-800"
               >
                 {errors.crm.message}
@@ -226,7 +235,7 @@ export function ProfessionalForm({
             {errors.crmState && (
               <span
                 id="state-error"
-                role="alert"
+
                 className="block text-sm text-red-800"
               >
                 {errors.crmState.message}
@@ -245,7 +254,7 @@ export function ProfessionalForm({
             {errors.rqe && (
               <span
                 id="rqe-error"
-                role="alert"
+
                 className="block text-sm text-red-800"
               >
                 {errors.rqe.message}
@@ -264,7 +273,7 @@ export function ProfessionalForm({
             {errors.specialty && (
               <span
                 id="specialty-error"
-                role="alert"
+
                 className="block text-sm text-red-800"
               >
                 {errors.specialty.message}
@@ -272,14 +281,7 @@ export function ProfessionalForm({
             )}
           </label>
         </div>
-        {errors.root && (
-          <p
-            role="alert"
-            className="text-red-800"
-          >
-            {errors.root.message}
-          </p>
-        )}
+        {errors.root && <p className="text-red-800">{errors.root.message}</p>}
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             className={buttonClass}

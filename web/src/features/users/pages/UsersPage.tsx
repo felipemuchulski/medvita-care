@@ -1,5 +1,6 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation, useParams } from 'react-router'
+import { Link, Navigate, useParams, useLocation } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 import { buttonClass, inputClass } from '../../appointments/components/Selectors'
 import { useManagedUser, useUsers } from '../hooks/use-users'
@@ -69,7 +70,7 @@ function Form({ record }: { record?: ManagedUser }) {
 }
 function Detail({ actor, id, edit }: { actor: string; id: string; edit: boolean }) {
   const query = useManagedUser(actor, id)
-  const location = useLocation()
+  const notice = useNavigationNotice('userSaved', 'Usuário salvo com sucesso.')
   if (query.isPending) return <p role="status">Carregando usuário...</p>
   if (query.isError)
     return (
@@ -98,7 +99,7 @@ function Detail({ actor, id, edit }: { actor: string; id: string; edit: boolean 
     <UserDetails
       actor={actor}
       record={query.data}
-      notice={location.state?.userSaved ? 'Usuário salvo com sucesso.' : undefined}
+      notice={notice || undefined}
     />
   )
 }

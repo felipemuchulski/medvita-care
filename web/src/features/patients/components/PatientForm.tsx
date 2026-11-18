@@ -1,5 +1,7 @@
+import { FieldError, FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus, formApiError } from '../../../lib/form-feedback'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { isApiError } from '../../../api/api-error'
 import {
@@ -21,21 +23,6 @@ interface PatientFormProps {
 const inputClassName =
   'min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:opacity-70'
 const labelClassName = 'mb-1 block text-sm font-medium text-text-primary'
-const errorClassName = 'mt-1 text-sm text-red-700'
-
-function FieldError({ id, message }: { id: string; message?: string }) {
-  if (!message) return null
-
-  return (
-    <p
-      id={id}
-      role="alert"
-      className={errorClassName}
-    >
-      {message}
-    </p>
-  )
-}
 
 export default function PatientForm({
   patient,
@@ -43,13 +30,16 @@ export default function PatientForm({
   cancelTo,
   onSubmit,
 }: PatientFormProps) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
+    shouldFocusError: false,
     defaultValues: patientToFormValues(patient),
   })
   const cpfField = register('cpf')
@@ -58,24 +48,76 @@ export default function PatientForm({
     try {
       await onSubmit(toPatientPayload(values))
     } catch (error: unknown) {
-      const message = isApiError(error)
-        ? error.message
-        : 'Não foi possível salvar o paciente.'
-      if (/cpf/i.test(message)) {
-        setError('cpf', { type: 'server', message })
-      } else {
-        setError('root', { type: 'server', message })
+      const messages = isApiError(error) ? error.messages : []
+      let mapped = false
+      if (isApiError(error) && [400, 409, 422].includes(error.status)) {
+        for (const message of messages) {
+          if (
+            /^(?:cpf\b|o cpf\b|informe um cpf\b|já existe um paciente com este cpf)/i.test(
+              message,
+            )
+          ) {
+            setError('cpf', {
+              type: 'server',
+              message:
+                error.status === 409
+                  ? 'Já existe um paciente com este CPF nesta clínica.'
+                  : 'Informe um CPF válido.',
+            })
+            mapped = true
+          } else if (/^(?:name\b|o nome do paciente\b)/i.test(message)) {
+            setError('name', {
+              type: 'server',
+              message: 'Informe um nome com 3 a 150 caracteres.',
+            })
+            mapped = true
+          } else if (/^(?:phone\b|informe um telefone\b)/i.test(message)) {
+            setError('phone', {
+              type: 'server',
+              message: 'Informe um telefone brasileiro com 10 ou 11 dígitos.',
+            })
+            mapped = true
+          } else {
+            const field = /^birthDate\b/i.test(message)
+              ? 'birthDate'
+              : /^email\b/i.test(message)
+                ? 'email'
+                : /^zipCode\b/i.test(message)
+                  ? 'zipCode'
+                  : /^state\b/i.test(message)
+                    ? 'state'
+                    : null
+            if (field) {
+              setError(field, {
+                type: 'server',
+                message: 'Confira o valor informado neste campo.',
+              })
+              mapped = true
+            }
+          }
+        }
       }
+      if (!mapped)
+        setError('root', {
+          type: 'server',
+          message: formApiError(
+            error,
+            'Não foi possível salvar o paciente. Seus dados foram preservados.',
+          ),
+        })
+      focusErrors()
     }
   }
 
   return (
     <form
-      onSubmit={handleSubmit(submit)}
+      ref={formRef}
+      onSubmit={handleSubmit(submit, focusErrors)}
       noValidate
       aria-busy={isSubmitting}
       className="space-y-7"
     >
+      <FormErrorSummary errors={errors} />
       <section className="rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6">
         <h2 className="text-lg font-semibold">Dados pessoais</h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -158,19 +200,25 @@ export default function PatientForm({
             >
               Sexo
             </label>
-            <select
-              id="sex"
-              aria-invalid={Boolean(errors.sex)}
-              aria-describedby={errors.sex ? 'sex-error' : undefined}
-              disabled={isSubmitting}
-              className={inputClassName}
-              {...register('sex')}
-            >
-              <option value="">Não informado</option>
-              <option value="FEMALE">Feminino</option>
-              <option value="MALE">Masculino</option>
-              <option value="NOT_INFORMED">Prefere não informar</option>
-            </select>
+            <Controller
+              name="sex"
+              control={control}
+              render={({ field }) => (
+                <select
+                  {...field}
+                  id="sex"
+                  aria-invalid={Boolean(errors.sex)}
+                  aria-describedby={errors.sex ? 'sex-error' : undefined}
+                  disabled={isSubmitting}
+                  className={inputClassName}
+                >
+                  <option value="">Não informado</option>
+                  <option value="FEMALE">Feminino</option>
+                  <option value="MALE">Masculino</option>
+                  <option value="NOT_INFORMED">Prefere não informar</option>
+                </select>
+              )}
+            />
             <FieldError
               id="sex-error"
               message={errors.sex?.message}
@@ -388,15 +436,6 @@ export default function PatientForm({
           </div>
         </div>
       </section>
-
-      {errors.root && (
-        <p
-          role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-        >
-          {errors.root.message}
-        </p>
-      )}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link

@@ -1,3 +1,4 @@
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +27,7 @@ export function EncounterForm({
   user: string
   preview?: boolean
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const mutations = useEncounterMutations(clinic, user)
   const {
     register,
@@ -37,6 +39,7 @@ export function EncounterForm({
     formState: { errors, isDirty, isSubmitting },
   } = useForm<EncounterValues>({
     resolver: zodResolver(encounterSchema),
+    shouldFocusError: false,
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     shouldUnregister: false,
@@ -67,6 +70,7 @@ export function EncounterForm({
       setMessage('Alterações salvas com sucesso.')
     } catch (error) {
       setError('root', { message: clinicalError(error) })
+      focusErrors()
     } finally {
       lock.current = false
       mutations.save.reset()
@@ -85,7 +89,7 @@ export function EncounterForm({
         }),
       )
       const firstMissing = missing[0]
-      if (firstMissing) requestAnimationFrame(() => setFocus(firstMissing))
+      if (firstMissing) focusErrors()
       return
     }
     setCompletion(payload)
@@ -135,10 +139,11 @@ export function EncounterForm({
   return (
     <>
       <form
+        ref={formRef}
         noValidate
         onSubmit={(event) => {
           if (preview) event.preventDefault()
-          else void handleSubmit(save)(event)
+          else void handleSubmit(save, focusErrors)(event)
         }}
         aria-busy={pending}
         className="w-full min-w-0 space-y-5"
@@ -147,7 +152,7 @@ export function EncounterForm({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-semibold">Registro do atendimento</h2>
             <p
-              role="status"
+              role={errors.root || (message && !isDirty) ? undefined : 'status'}
               className={`text-sm font-medium ${isDirty ? 'text-amber-800' : 'text-text-secondary'}`}
             >
               {saveStatus}
@@ -201,7 +206,7 @@ export function EncounterForm({
                 type="button"
                 className={buttonClass}
                 disabled={pending || preview}
-                onClick={() => void handleSubmit(prepareCompletion)()}
+                onClick={() => void handleSubmit(prepareCompletion, focusErrors)()}
               >
                 Concluir atendimento
               </button>

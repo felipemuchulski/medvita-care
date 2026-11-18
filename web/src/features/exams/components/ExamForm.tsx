@@ -1,3 +1,5 @@
+import { FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -23,6 +25,7 @@ export function ExamForm({
   initialEncounter: string
   onCreated: (id: string) => void
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const types = useExamTypes(clinic, user)
   const mutations = useExamMutations(clinic, user)
   const lock = useRef(false)
@@ -35,6 +38,7 @@ export function ExamForm({
     reset,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ExamValues>({
+    shouldFocusError: false,
     resolver: zodResolver(examSchema),
     defaultValues: {
       patientId: initialPatient,
@@ -61,6 +65,7 @@ export function ExamForm({
       onCreated(record.id)
     } catch (error) {
       setError('root', { message: examError(error) })
+      focusErrors()
     } finally {
       lock.current = false
       mutations.create.reset()
@@ -69,10 +74,7 @@ export function ExamForm({
   if (types.isPending) return <p role="status">Carregando tipos de exame...</p>
   if (types.isError)
     return (
-      <div
-        role="alert"
-        className="space-y-3"
-      >
+      <div className="space-y-3">
         <p>{examError(types.error)}</p>
         <button
           className={buttonClass}
@@ -91,11 +93,13 @@ export function ExamForm({
     )
   return (
     <form
-      onSubmit={(event) => void handleSubmit(submit)(event)}
+      ref={formRef}
+      onSubmit={(event) => void handleSubmit(submit, focusErrors)(event)}
       className="space-y-5"
       aria-busy={isSubmitting}
       noValidate
     >
+      <FormErrorSummary errors={errors} />
       <fieldset
         disabled={isSubmitting}
         className="min-w-0 space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6"
@@ -126,7 +130,7 @@ export function ExamForm({
           {errors.patientId && (
             <p
               id="exam-patient-error"
-              role="alert"
+
               className="text-sm text-red-800"
             >
               {errors.patientId.message}
@@ -148,12 +152,7 @@ export function ExamForm({
           )}
         />
         {errors.encounterId && (
-          <p
-            role="alert"
-            className="text-sm text-red-800"
-          >
-            {errors.encounterId.message}
-          </p>
+          <p className="text-sm text-red-800">{errors.encounterId.message}</p>
         )}
       </fieldset>
       <fieldset
@@ -170,14 +169,6 @@ export function ExamForm({
       <p className="text-sm text-text-secondary">
         A data da solicitação e o profissional solicitante serão registrados ao salvar.
       </p>
-      {errors.root && (
-        <p
-          role="alert"
-          className="text-red-800"
-        >
-          {errors.root.message}
-        </p>
-      )}
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           className={buttonClass}

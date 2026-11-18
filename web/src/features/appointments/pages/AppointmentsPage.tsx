@@ -1,3 +1,4 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { filterRule, periodQuery, useUrlFilters } from '../../../lib/list-filters'
 import { PeriodFields } from '../../../components/filters/PeriodFields'
 import { FilterLink as Link } from '../../../components/filters/FilterLink'
@@ -93,6 +94,7 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
   const mutations = useAppointmentMutations(clinic)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [notice, setNotice] = useState('')
+  const navigationNotice = useNavigationNotice('success')
   if (isNew)
     return (
       <Frame>
@@ -162,12 +164,12 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
       <h1 className="text-2xl font-bold">
         {editing ? 'Reagendar consulta' : 'Detalhes do agendamento'}
       </h1>
-      {(notice || location.state?.success) && (
+      {(notice || navigationNotice) && (
         <p
           role="status"
           className="rounded-lg bg-green-50 p-3 text-green-900"
         >
-          {notice || location.state.success}
+          {notice || navigationNotice}
         </p>
       )}
       {editing ? (
@@ -184,16 +186,18 @@ function AppointmentScreen({ clinic, create }: { clinic: string; create: boolean
                   scheduledAt: payload.scheduledAt,
                   durationMinutes: payload.durationMinutes,
                 })
-                navigate(`/agendamentos/${a.id}${location.search}`, {
-                  state: {
-                    success: 'Agendamento reagendado com sucesso.',
-                    calendarReturn: location.state?.calendarReturn,
-                  },
-                })
               } catch (e) {
                 throw new Error(appointmentError(e), { cause: e })
               }
             }}
+            onSaved={() =>
+              navigate(`/agendamentos/${a.id}${location.search}`, {
+                state: {
+                  success: 'Agendamento reagendado com sucesso.',
+                  calendarReturn: location.state?.calendarReturn,
+                },
+              })
+            }
           />
         ) : (
           <p role="alert">Este agendamento não pode ser reagendado.</p>

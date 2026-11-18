@@ -55,7 +55,7 @@ export function ClinicalTextFields({
             {errors[field.name] && (
               <p
                 id={errorId}
-                role="alert"
+
                 className="text-sm text-red-800"
               >
                 {errors[field.name]?.message}

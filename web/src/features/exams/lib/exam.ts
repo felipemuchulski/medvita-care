@@ -1,3 +1,4 @@
+import { formApiError } from '../../../lib/form-feedback'
 import type { ClinicRole } from '../../auth/types/auth'
 import { isApiError } from '../../../api/api-error'
 import { formatAppointment } from '../../appointments/lib/appointment'
@@ -23,7 +24,7 @@ export const examError = (error: unknown) => {
       return 'Você não possui perfil profissional ou vínculo ativo autorizado para acessar exames nesta clínica.'
     if (error.status === 404)
       return 'Registro não encontrado ou não autorizado nesta clínica.'
-    return error.message
+    return formApiError(error)
   }
   return 'Não foi possível carregar ou salvar o exame. Tente novamente.'
 }

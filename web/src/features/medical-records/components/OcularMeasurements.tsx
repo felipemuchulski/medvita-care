@@ -1,6 +1,6 @@
 import { Controller, type Control, type FieldErrors } from 'react-hook-form'
 import { inputClass } from '../../appointments/components/Selectors'
-import type { EncounterValues } from '../lib/encounter'
+import { pressureInput, encounterSchema, type EncounterValues } from '../lib/encounter'
 export function OcularMeasurements({
   control,
   errors,
@@ -41,6 +41,18 @@ export function OcularMeasurements({
                     {...field}
                     id={name}
                     inputMode={pressure ? 'decimal' : undefined}
+                    onBlur={() => {
+                      field.onBlur()
+                      if (
+                        pressure &&
+                        field.value.trim() &&
+                        encounterSchema.shape[name].safeParse(field.value).success
+                      ) {
+                        field.onChange(
+                          pressureInput(Number(field.value.trim().replace(',', '.'))),
+                        )
+                      }
+                    }}
                     maxLength={pressure ? undefined : 50}
                     className={`${inputClass} focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
                     aria-invalid={Boolean(errors[name])}
@@ -53,13 +65,13 @@ export function OcularMeasurements({
                 className="text-xs text-text-secondary"
               >
                 {pressure
-                  ? 'Opcional. Aceita até duas casas decimais.'
+                  ? 'Opcional. Em mmHg; aceita vírgula ou ponto e até duas casas decimais.'
                   : 'Opcional. Registre a medida conforme a avaliação.'}
               </p>
               {errors[name] && (
                 <p
                   id={`${name}-error`}
-                  role="alert"
+
                   className="text-sm text-red-800"
                 >
                   {errors[name]?.message}

@@ -1,6 +1,7 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { ArrowLeft, Pencil } from 'lucide-react'
-import { Navigate, useLocation, useParams } from 'react-router'
+import { Navigate, useParams } from 'react-router'
 import { isApiError } from '../../../api/api-error'
 import { canReadClinicalRecords } from '../../medical-records/lib/encounter'
 import { useClinic } from '../../../hooks/use-clinic'
@@ -14,7 +15,11 @@ import {
   canWritePatients,
 } from '../lib/patient-permissions'
 
-const sexLabels = { MALE: 'Masculino', FEMALE: 'Feminino', NOT_INFORMED: 'Não informado' }
+const sexLabels = {
+  MALE: 'Masculino',
+  FEMALE: 'Feminino',
+  NOT_INFORMED: 'Prefere não informar',
+}
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -31,7 +36,7 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
 
 export default function PatientDetailsPage() {
   const { patientId } = useParams()
-  const location = useLocation()
+  const notice = useNavigationNotice('notice')
   const { activeClinicId, activeRole } = useClinic()
   const patientQuery = usePatient(activeClinicId, patientId)
   const statusMutation = useUpdatePatientStatus(activeClinicId ?? '', patientId ?? '')
@@ -90,12 +95,12 @@ export default function PatientDetailsPage() {
       >
         <ArrowLeft size={18} /> Voltar para pacientes
       </Link>
-      {(location.state as { notice?: string } | null)?.notice && (
+      {notice && (
         <p
           role="status"
           className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
         >
-          {(location.state as { notice: string }).notice}
+          {notice}
         </p>
       )}
       <div className="flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-6">

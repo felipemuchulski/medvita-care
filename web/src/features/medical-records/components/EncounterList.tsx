@@ -24,12 +24,14 @@ export function EncounterList({
           <p>{formatAppointment(record.startedAt)} · UTC−03:00</p>
           <p>Profissional: {record.professional.user.name}</p>
           <EncounterStatusBadge status={record.status} />
-          <Link
-            to={`/prontuarios/pacientes/${record.patientId}`}
-            className={`${buttonClass} w-full`}
-          >
-            Histórico do paciente
-          </Link>
+          {!history && (
+            <Link
+              to={`/prontuarios/pacientes/${record.patientId}`}
+              className={`${buttonClass} w-full`}
+            >
+              Histórico do paciente
+            </Link>
+          )}
           {record.professional.userId === user ? (
             <Link
               to={`/prontuarios/atendimentos/${record.id}`}

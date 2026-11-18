@@ -109,7 +109,7 @@ export function ClinicFormFields({
                 {error && (
                   <p
                     id={`clinic-${name}-error`}
-                    role="alert"
+
                     className="text-sm text-red-800"
                   >
                     {error}

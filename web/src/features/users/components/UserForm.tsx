@@ -1,3 +1,5 @@
+import { FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef, useState } from 'react'
 import { useAuthorizationCheck } from '../../../lib/authorized-query'
 import { useForm } from 'react-hook-form'
@@ -19,6 +21,7 @@ export function UserForm({
   record?: ManagedUser
   onSaved: (user: ManagedUser) => void
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const { user } = useAuth()
   const assertCurrent = useAuthorizationCheck()
   const committed = useUserCommitted()
@@ -33,6 +36,7 @@ export function UserForm({
     setError,
     formState: { errors, isDirty, isSubmitting, dirtyFields },
   } = useForm<UserValues>({
+    shouldFocusError: false,
     resolver: zodResolver(record ? userSchema : createUserSchema),
     defaultValues: {
       name: record?.name || '',
@@ -75,6 +79,7 @@ export function UserForm({
       onSaved(saved)
     } catch (error) {
       setError('root', { message: userError(error) })
+      focusErrors()
       setConfirmation(null)
     } finally {
       lock.current = false
@@ -94,11 +99,13 @@ export function UserForm({
   }
   return (
     <form
-      onSubmit={(event) => void handleSubmit(submit)(event)}
+      ref={formRef}
+      onSubmit={(event) => void handleSubmit(submit, focusErrors)(event)}
       className="space-y-5"
       aria-busy={pending}
       noValidate
     >
+      <FormErrorSummary errors={errors} />
       <fieldset
         disabled={pending}
         className="grid min-w-0 gap-4 rounded-xl border border-border bg-white p-4 sm:grid-cols-2 sm:p-6"
@@ -128,7 +135,7 @@ export function UserForm({
             {errors[name] && (
               <p
                 id={`user-${name}-error`}
-                role="alert"
+
                 className="text-sm text-red-800"
               >
                 {errors[name]?.message}
@@ -182,7 +189,7 @@ export function UserForm({
             {errors.password && (
               <p
                 id="user-password-error"
-                role="alert"
+
                 className="text-sm text-red-800"
               >
                 {errors.password.message}
@@ -210,14 +217,6 @@ export function UserForm({
             automático. Alterações de e-mail ou privilégio revogam as sessões do usuário.
           </p>
         </fieldset>
-      )}
-      {errors.root && (
-        <p
-          role="alert"
-          className="text-red-800"
-        >
-          {errors.root.message}
-        </p>
       )}
       <div className="flex flex-col gap-3 sm:flex-row">
         <button

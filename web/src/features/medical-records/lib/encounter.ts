@@ -49,6 +49,17 @@ export const encounterSchema = z.object({
   intraocularPressureLeft: pressure,
 })
 export type EncounterValues = z.infer<typeof encounterSchema>
+export function pressureInput(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return ''
+  const numeric = Number(value)
+  return Number.isFinite(numeric)
+    ? new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(numeric)
+    : ''
+}
+export function formatPressure(value: number | string | null | undefined): string {
+  const formatted = pressureInput(value)
+  return formatted ? `${formatted} mmHg` : 'Não informada'
+}
 export function toEncounterValues(data: ClinicalData): EncounterValues {
   return {
     chiefComplaint: data.chiefComplaint ?? '',
@@ -58,8 +69,8 @@ export function toEncounterValues(data: ClinicalData): EncounterValues {
     clinicalNotes: data.clinicalNotes ?? '',
     visualAcuityRight: data.visualAcuityRight ?? '',
     visualAcuityLeft: data.visualAcuityLeft ?? '',
-    intraocularPressureRight: String(data.intraocularPressureRight ?? ''),
-    intraocularPressureLeft: String(data.intraocularPressureLeft ?? ''),
+    intraocularPressureRight: pressureInput(data.intraocularPressureRight),
+    intraocularPressureLeft: pressureInput(data.intraocularPressureLeft),
   }
 }
 export function toClinicalPayload(values: EncounterValues): ClinicalPayload {

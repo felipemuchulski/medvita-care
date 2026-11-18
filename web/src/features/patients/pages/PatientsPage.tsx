@@ -1,5 +1,5 @@
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { UserPlus, UsersRound } from 'lucide-react'
-import { useLocation } from 'react-router'
 import { FilterLink as Link } from '../../../components/filters/FilterLink'
 import { SearchField } from '../../../components/filters/SearchField'
 import { filterRule, useUrlFilters } from '../../../lib/list-filters'
@@ -16,10 +16,6 @@ const rules = {
   search: filterRule.search,
   active: filterRule.enum(['active', 'inactive', 'all']),
   page: filterRule.page,
-}
-
-interface LocationState {
-  notice?: string
 }
 
 export default function PatientsPage() {
@@ -45,7 +41,7 @@ function PatientsContent({
   clinicId: string
   activeRole: ClinicRole
 }) {
-  const location = useLocation()
+  const notice = useNavigationNotice('notice')
   const filters = useUrlFilters(rules, { active: 'active', page: '1', search: '' })
   const { search, active: activeFilter } = filters.values
   const page = Number(filters.values.page)
@@ -84,12 +80,12 @@ function PatientsContent({
         )}
       </div>
 
-      {(location.state as LocationState | null)?.notice && (
+      {notice && (
         <p
           role="status"
           className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
         >
-          {(location.state as LocationState).notice}
+          {notice}
         </p>
       )}
 

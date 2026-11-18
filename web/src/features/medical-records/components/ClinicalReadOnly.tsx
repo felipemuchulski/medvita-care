@@ -1,4 +1,4 @@
-import { textFields } from '../lib/encounter'
+import { textFields, formatPressure } from '../lib/encounter'
 import type { Encounter } from '../types/encounter'
 export function ClinicalReadOnly({ encounter }: { encounter: Encounter }) {
   return (
@@ -31,7 +31,7 @@ export function ClinicalReadOnly({ encounter }: { encounter: Encounter }) {
             </p>
             <p className="[overflow-wrap:anywhere]">
               Pressão intraocular:{' '}
-              {encounter[`intraocularPressure${side}`] ?? 'Não informada'}
+              {formatPressure(encounter[`intraocularPressure${side}`])}
             </p>
           </section>
         ))}

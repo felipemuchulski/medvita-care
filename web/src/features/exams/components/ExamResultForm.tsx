@@ -1,3 +1,5 @@
+import { FormErrorSummary } from '../../../components/forms/FormFeedback'
+import { useFormErrorFocus } from '../../../lib/form-feedback'
 import { useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,6 +24,7 @@ export function ExamResultForm({
   onSaved: () => void
   onClose: () => void
 }) {
+  const { formRef, focusErrors } = useFormErrorFocus()
   const mutation = useExamMutations(clinic, user).result
   const lock = useRef(false)
   const {
@@ -31,6 +34,7 @@ export function ExamResultForm({
     reset,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<ResultValues>({
+    shouldFocusError: false,
     resolver: zodResolver(resultSchema),
     defaultValues: {
       resultText: exam.resultText || '',
@@ -48,6 +52,7 @@ export function ExamResultForm({
       setError('performedAt', {
         message: 'Informe uma realização entre a solicitação e o momento atual.',
       })
+      focusErrors()
       return
     }
     lock.current = true
@@ -60,6 +65,7 @@ export function ExamResultForm({
       onSaved()
     } catch (error) {
       setError('root', { message: examError(error) })
+      focusErrors()
     } finally {
       lock.current = false
       mutation.reset()
@@ -67,12 +73,14 @@ export function ExamResultForm({
   }
   return (
     <form
-      onSubmit={(event) => void handleSubmit(submit)(event)}
+      ref={formRef}
+      onSubmit={(event) => void handleSubmit(submit, focusErrors)(event)}
       className="space-y-4 rounded-xl border border-border bg-white p-4 sm:p-6"
       aria-busy={isSubmitting}
       noValidate
     >
       <h2 className="text-lg font-semibold">Registrar resultado</h2>
+      <FormErrorSummary errors={errors} />
       <fieldset
         disabled={isSubmitting}
         className="min-w-0 space-y-4"
@@ -112,14 +120,6 @@ export function ExamResultForm({
         Salvar o resultado coloca o exame em andamento. A conclusão é feita separadamente
         e impede novas alterações.
       </p>
-      {errors.root && (
-        <p
-          role="alert"
-          className="text-red-800"
-        >
-          {errors.root.message}
-        </p>
-      )}
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           className={buttonClass}

@@ -116,7 +116,7 @@ export function professionalError(error: unknown) {
     if (error.status === 409)
       return "Já existe um perfil para este usuário ou CRM/UF. Consulte o cadastro existente.";
     if (error.status === 403)
-      return error.message;
+      return "Você não possui permissão para alterar este perfil profissional.";
     if (error.status === 401) return "Sua sessão expirou. Entre novamente.";
     if (error.status === 404)
       return "Profissional ou vínculo não encontrado nesta clínica.";
