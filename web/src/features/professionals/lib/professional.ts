@@ -69,10 +69,13 @@ export const professionalSchema = z.object({
     .max(100, "Use no máximo 100 caracteres."),
 });
 export type ProfessionalFormValues = z.input<typeof professionalSchema>;
-export const canManageProfessionals = (
+export const canCreateProfessionals = (
   role: ClinicRole | null,
   isSystemAdmin = false,
 ) => isSystemAdmin || role === "ADMIN";
+export const canEditProfessionals = (isSystemAdmin = false) => isSystemAdmin;
+export const professionalEditDeniedMessage =
+  "Acesso restrito a administradores do sistema.";
 export function eligibleMembers(
   members: ProfessionalMembership[],
   profiles: Professional[],
@@ -113,7 +116,7 @@ export function professionalError(error: unknown) {
     if (error.status === 409)
       return "Já existe um perfil para este usuário ou CRM/UF. Consulte o cadastro existente.";
     if (error.status === 403)
-      return "Você não tem permissão para esta operação nesta clínica.";
+      return error.message;
     if (error.status === 401) return "Sua sessão expirou. Entre novamente.";
     if (error.status === 404)
       return "Profissional ou vínculo não encontrado nesta clínica.";

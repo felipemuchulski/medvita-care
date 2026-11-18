@@ -5,7 +5,12 @@ import { buttonClass } from '../../appointments/components/Selectors'
 import { ProfessionalForm } from '../components/ProfessionalForm'
 import { ProfessionalsList } from '../components/ProfessionalsList'
 import { useProfessional, useProfessionalMutations } from '../hooks/use-professionals'
-import { canManageProfessionals, professionalError } from '../lib/professional'
+import {
+  canCreateProfessionals,
+  canEditProfessionals,
+  professionalEditDeniedMessage,
+  professionalError,
+} from '../lib/professional'
 import type { CreateProfessionalPayload } from '../types/professional'
 
 export default function ProfessionalsPage() {
@@ -19,25 +24,29 @@ export default function ProfessionalsPage() {
           'Selecione uma clínica com vínculo ativo para acessar profissionais.'}
       </p>
     )
-  const manage = canManageProfessionals(clinic.activeRole, user.isSystemAdmin)
+  const canCreate = canCreateProfessionals(clinic.activeRole, user.isSystemAdmin)
+  const canEdit = canEditProfessionals(user.isSystemAdmin)
   const ownUser =
     !user.isSystemAdmin && clinic.activeRole === 'OPHTHALMOLOGIST' ? user.id : undefined
   return (
     <ProfessionalScreen
       key={`${clinic.activeClinicId}:${user.id}:${clinic.activeRole}:${user.isSystemAdmin}`}
       clinic={clinic.activeClinicId}
-      manage={manage}
+      canCreate={canCreate}
+      canEdit={canEdit}
       ownUser={ownUser}
     />
   )
 }
 function ProfessionalScreen({
   clinic,
-  manage,
+  canCreate,
+  canEdit,
   ownUser,
 }: {
   clinic: string
-  manage: boolean
+  canCreate: boolean
+  canEdit: boolean
   ownUser?: string
 }) {
   const { professionalId = '' } = useParams()
@@ -51,14 +60,20 @@ function ProfessionalScreen({
     return (
       <ProfessionalsList
         clinic={clinic}
-        manage={manage}
+        canCreate={canCreate}
+        canEdit={canEdit}
         ownUser={ownUser}
       />
     )
-  if ((create || edit) && !manage)
+  if ((create && !canCreate) || (edit && !canEdit))
     return (
       <div role="alert">
-        <p>Você não tem permissão para gerenciar profissionais nesta clínica.</p>
+        <p>
+          {edit
+            ? professionalEditDeniedMessage
+            : 'Você não tem permissão para cadastrar profissionais nesta clínica.'}
+        </p>
+        {edit && <p>Solicite a correção do cadastro ao administrador do sistema.</p>}
         <Link
           className={buttonClass}
           to="/profissionais"
@@ -164,7 +179,13 @@ function ProfessionalScreen({
           situação de outros vínculos não é retornada neste cadastro.
         </p>
       </article>
-      {manage && (
+      {!canEdit && (
+        <p className="text-sm text-text-secondary">
+          Para corrigir os dados deste perfil global, solicite a alteração ao
+          administrador do sistema.
+        </p>
+      )}
+      {canEdit && (
         <Link
           className={buttonClass}
           to={`/profissionais/${p.id}/editar`}

@@ -13,6 +13,7 @@ import { ClinicService } from "src/clinics/clinics.service";
 import { isUniqueViolation } from "src/common/utils/database-error.util";
 import { UserService } from "src/users/user.service";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
+import { assertSystemAdmin } from "src/common/authorization/administrative-access";
 import { CreateProfessionalDto } from "./dto/create-professional.dto";
 import { UpdateProfessionalDto } from "./dto/update-professional.dto";
 import { ProfessionalProfile } from "./entities/professional-profile.entity";
@@ -168,7 +169,7 @@ export class ProfessionalsService {
     dto: UpdateProfessionalDto,
     currentUser: AuthenticatedUser,
   ) {
-    this.assertCanManage(currentUser, clinicId);
+    assertSystemAdmin(currentUser);
     await this.validateActiveClinic(clinicId);
     const profile = await this.authorizedProfilesQuery(clinicId)
       .andWhere("professional.id = :id", { id })

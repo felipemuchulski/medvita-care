@@ -6,11 +6,13 @@ import { professionalError, searchProfessionals, states } from '../lib/professio
 
 export function ProfessionalsList({
   clinic,
-  manage,
+  canCreate,
+  canEdit,
   ownUser,
 }: {
   clinic: string
-  manage: boolean
+  canCreate: boolean
+  canEdit: boolean
   ownUser?: string
 }) {
   const query = useProfessionals(clinic)
@@ -22,7 +24,7 @@ export function ProfessionalsList({
     <div className="min-w-0 space-y-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Profissionais</h1>
-        {manage && (
+        {canCreate && (
           <Link
             className={buttonClass}
             to="/profissionais/novo"
@@ -122,7 +124,7 @@ export function ProfessionalsList({
                     >
                       Ver detalhes
                     </Link>
-                    {manage && (
+                    {canEdit && (
                       <Link
                         className={`${buttonClass} w-full`}
                         to={`/profissionais/${p.id}/editar`}
@@ -170,7 +172,7 @@ export function ProfessionalsList({
                             >
                               Detalhes
                             </Link>
-                            {manage && (
+                            {canEdit && (
                               <Link
                                 className={buttonClass}
                                 to={`/profissionais/${p.id}/editar`}

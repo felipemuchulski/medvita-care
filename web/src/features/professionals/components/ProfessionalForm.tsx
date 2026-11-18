@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router'
-import { useAuth } from '../../../hooks/use-auth'
 import {
   useEligibleProfessionalUsers,
   useProfessionals,
@@ -32,7 +31,6 @@ export function ProfessionalForm({
     payload: Partial<ProfessionalFields> | CreateProfessionalPayload,
   ) => Promise<void>
 }) {
-  const { user } = useAuth()
   const members = useEligibleProfessionalUsers(clinic, !professional)
   const profiles = useProfessionals(clinic)
   const candidates = eligibleMembers(members.data ?? [], profiles.data ?? [], clinic)
@@ -87,20 +85,20 @@ export function ProfessionalForm({
       aria-busy={isSubmitting}
       className="space-y-5 rounded-xl border border-border bg-white p-4 sm:p-6"
     >
-      {user?.isSystemAdmin && (
-        <aside
-          aria-label="Informação administrativa"
-          className="my-[10px]! rounded-xl border border-gray-300 border-l-4 border-l-primary bg-gray-100 p-4"
-        >
-          <h2 className="mb-2 text-sm font-semibold text-primary">
-            Informação administrativa
-          </h2>
-          <p className="text-sm leading-relaxed text-text-secondary">
-            O perfil é único por usuário. Alterações profissionais valem para todas as
-            clínicas às quais ele está vinculado.
-          </p>
-        </aside>
-      )}
+      <aside
+        aria-label="Informação administrativa"
+        className="my-[10px]! rounded-xl border border-gray-300 border-l-4 border-l-primary bg-gray-100 p-4"
+      >
+        <h2 className="mb-2 text-sm font-semibold text-primary">
+          Informação administrativa
+        </h2>
+        <p className="text-sm leading-relaxed text-text-secondary">
+          O perfil é único por usuário. Alterações profissionais valem para todas as
+          clínicas às quais ele está vinculado.
+          {!professional &&
+            ' Confira os dados antes de cadastrar: correções posteriores são restritas ao administrador do sistema.'}
+        </p>
+      </aside>
       <fieldset
         disabled={isSubmitting}
         className="min-w-0 space-y-5"

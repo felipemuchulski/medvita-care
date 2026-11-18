@@ -17,7 +17,7 @@ function checkController(controller) {
   const administrativeExceptions = new Set([
     "ClinicController.findById", "ClinicController.update",
     "ClinicUsersController.create", "ClinicUsersController.findByClinic", "ClinicUsersController.updateRole", "ClinicUsersController.updateActive",
-    "ProfessionalsController.create", "ProfessionalsController.findByClinic", "ProfessionalsController.findByUser", "ProfessionalsController.findByCrm", "ProfessionalsController.findById", "ProfessionalsController.update",
+    "ProfessionalsController.create", "ProfessionalsController.findByClinic", "ProfessionalsController.findByUser", "ProfessionalsController.findByCrm", "ProfessionalsController.findById",
   ]);
   const guard = new AuthorizationGuard(new Reflector());
   const routes = new MetadataScanner().getAllMethodNames(controller.prototype)

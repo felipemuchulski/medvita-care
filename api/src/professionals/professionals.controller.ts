@@ -8,6 +8,7 @@ import {
   Post,
 } from "@nestjs/common";
 import { SystemAdminOrClinicRoles } from "src/common/decorators/system-admin-or-clinic-roles.decorator";
+import { SystemAdmin } from "src/common/decorators/system-admin.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
@@ -95,7 +96,7 @@ export class ProfessionalsController {
   }
 
   @Patch(":id")
-  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdmin()
   update(
     @Param("clinicId", new ParseUUIDPipe({ version: "4" })) clinicId: string,
     @Param("id", new ParseUUIDPipe({ version: "4" })) id: string,
