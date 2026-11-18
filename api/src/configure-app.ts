@@ -5,6 +5,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import type { NextFunction, Request, Response } from "express";
 import { existsSync } from "fs";
 import { extname, join, resolve } from "path";
+import { configureHttpSecurity } from "./common/http-security";
 
 export function configureApplication(app: NestExpressApplication): void {
   const config = app.get(ConfigService);
@@ -12,6 +13,7 @@ export function configureApplication(app: NestExpressApplication): void {
   const frontendUrl = config.get<string>("FRONTEND_URL")?.trim();
   if (!unified && !frontendUrl)
     throw new Error("FRONTEND_URL não configurada.");
+  configureHttpSecurity(app, config, unified);
   if (frontendUrl) {
     app.enableCors({
       origin: frontendUrl,
@@ -55,7 +57,8 @@ export function configureApplication(app: NestExpressApplication): void {
       !request.accepts("html")
     )
       return next();
-    response.setHeader("Cache-Control", "no-cache");
+    if (!response.hasHeader("Cache-Control"))
+      response.setHeader("Cache-Control", "no-cache");
     response.sendFile(index, (error) => {
       if (error) next(error);
     });
