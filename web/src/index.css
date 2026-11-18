@@ -1,20 +1,21 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "Roboto", system-ui, sans-serif;
-  --font-heading: "Montserrat", system-ui, sans-serif;
+  --font-sans: 'Roboto', system-ui, sans-serif;
+  --font-heading: 'Montserrat', system-ui, sans-serif;
   --color-primary: #063154;
-  --color-primary-dark: #001D39;
-  --color-primary-light: #E8F1F4;
-  --color-primary-hover: #0A4174;
-  --color-brand-muted: #BDD8E9;
-  --color-brand-highlight: #7BBDE8;
-  --color-accent: #025F67;
-  --color-background: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-border: #E2E8F0;
+  --color-primary-dark: #001d39;
+  --color-primary-light: #e8f1f4;
+  --color-primary-hover: #0a4174;
+  --color-brand-muted: #bdd8e9;
+  --color-brand-highlight: #7bbde8;
+  --color-accent: #025f67;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-control-border: #7e8fa5;
 }
 
 *,
@@ -25,8 +26,8 @@
 
 body {
   margin: 0;
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -37,7 +38,13 @@ body {
 }
 
 /* Typography shared by page titles and section headings. */
-h1, h2, h3, h4, h5, h6, [role="heading"] {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[role='heading'] {
   font-family: var(--font-heading);
 }
 
@@ -47,4 +54,35 @@ h1, h2, h3, h4, h5, h6, [role="heading"] {
   min-width: 0;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Narrow controls may shrink inside mobile grids; keyboard focus stays visible. */
+@layer base {
+  input,
+  select,
+  textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 6rem;
+  }
+  :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--focus-ring, var(--color-primary));
+    outline-offset: 2px;
+  }
+  :where(h1, h2, h3, p, dd, td, th) {
+    overflow-wrap: anywhere;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 }

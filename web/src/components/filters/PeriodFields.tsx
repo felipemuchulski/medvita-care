@@ -24,7 +24,7 @@ export function PeriodFields({
             aria-invalid={invalid}
             aria-describedby={invalid ? id : undefined}
             onChange={(event) => onChange({ [field]: event.target.value })}
-            className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-control-border bg-white px-3 py-2 text-base"
           />
         </label>
       ))}

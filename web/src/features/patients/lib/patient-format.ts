@@ -17,12 +17,32 @@ export function maskCpf(value: string): string {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
 }
 
+// Format on blur, not on every keystroke: deletion/paste and caret stay native.
+// Invalid values are left intact for validation, never silently truncated.
+export function editableCpf(value: string): string {
+  return /^[\d.\s-]*$/.test(value) && value.replace(/\D/g, '').length <= 11
+    ? maskCpf(value)
+    : value
+}
+export function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (!/^[\d() .-]*$/.test(value) || ![10, 11].includes(digits.length)) return value
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, -4)}-${digits.slice(-4)}`
+}
+export function formatPhone(value: string | null): string {
+  return value ? maskPhone(value) : 'Não informado'
+}
+export function maskZipCode(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  return /^[\d\s-]*$/.test(value) && digits.length === 8
+    ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+    : value
+}
+
 export function formatZipCode(value: string | null): string {
   if (!value) return 'Não informado'
   const digits = value.replace(/\D/g, '')
-  return digits.length === 8
-    ? digits.replace(/(\d{5})(\d{3})/, '$1-$2')
-    : value
+  return digits.length === 8 ? digits.replace(/(\d{5})(\d{3})/, '$1-$2') : value
 }
 
 export function formatDateOnly(value: string): string {

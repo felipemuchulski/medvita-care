@@ -1,3 +1,5 @@
+import { useFormErrorFocus, formApiError } from '../../../lib/form-feedback'
+import { useNavigationNotice } from '../../../hooks/use-navigation-notice'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, CalendarDays } from 'lucide-react'
@@ -14,6 +16,9 @@ interface LoginLocationState {
 }
 
 export default function LoginPage() {
+  const { formRef, focusErrors } = useFormErrorFocus()
+  const notice = useNavigationNotice('notice')
+  const [invalidCredentials, setInvalidCredentials] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -25,6 +30,7 @@ export default function LoginPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    setInvalidCredentials(false)
     setIsSubmitting(true)
 
     const formData = new FormData(event.currentTarget)
@@ -38,19 +44,24 @@ export default function LoginPage() {
         : '/'
       navigate(destination, { replace: true })
     } catch (requestError: unknown) {
+      const status = isApiError(requestError) ? requestError.status : undefined
+      setInvalidCredentials(status === 401)
       setError(
-        isApiError(requestError)
-          ? requestError.message
-          : 'Não foi possível entrar. Tente novamente.',
+        status === 401
+          ? 'E-mail ou senha inválidos. Confira os dados e tente novamente.'
+          : status === 403
+            ? 'O acesso desta conta não está disponível. Contate a administração.'
+            : formApiError(requestError, 'Não foi possível entrar. Tente novamente.'),
       )
+      focusErrors()
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6 sm:px-6 lg:p-8">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-white shadow-xl lg:min-h-[620px] lg:grid-cols-2">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6 lg:p-8">
+      <div className="grid w-full min-w-0 max-w-5xl overflow-hidden rounded-2xl border border-border bg-white shadow-xl lg:min-h-[620px] lg:grid-cols-2">
         <aside className="hidden flex-col justify-between bg-primary-dark p-12 text-white lg:flex">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-white/15 p-3">
@@ -58,7 +69,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold">Medvita Care</h1>
+              <h1 className="text-2xl font-bold">MedVita Care</h1>
               <p className="text-sm text-brand-muted">Gestão clínica</p>
             </div>
           </div>
@@ -83,18 +94,18 @@ export default function LoginPage() {
           </div>
 
           <p className="text-xs text-brand-muted">
-            Medvita Care — Sistema de gestão clínica
+            MedVita Care — Sistema de gestão clínica
           </p>
         </aside>
 
-        <main className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+        <main className="flex min-w-0 flex-col justify-center p-4 sm:p-10 lg:p-12">
           <div className="mb-10 flex items-center gap-3 lg:hidden">
             <div className="rounded-xl bg-primary-light p-3 text-primary-dark">
               <Eye size={28} />
             </div>
 
             <div>
-              <h1 className="text-xl font-bold text-primary-dark">Medvita Care</h1>
+              <h1 className="text-xl font-bold text-primary-dark">MedVita Care</h1>
               <p className="text-xs text-text-secondary">Gestão clínica</p>
             </div>
           </div>
@@ -109,20 +120,21 @@ export default function LoginPage() {
             </h2>
 
             <p className="mt-2 text-sm text-text-secondary">
-              Informe suas credenciais para acessar o Medvita Care.
+              Informe suas credenciais para acessar o MedVita Care.
             </p>
           </div>
 
-          {locationState?.notice && (
+          {notice && (
             <p
               role="status"
               className="mb-5 rounded-lg border border-primary-light bg-primary-light/50 p-3 text-sm text-primary-dark"
             >
-              {locationState.notice}
+              {notice}
             </p>
           )}
 
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             className="space-y-5"
             aria-busy={isSubmitting}
@@ -150,8 +162,9 @@ export default function LoginPage() {
                   placeholder="seu@email.com"
                   required
                   disabled={isSubmitting}
+                  aria-invalid={invalidCredentials}
                   aria-describedby={error ? 'login-error' : undefined}
-                  className="min-h-12 w-full rounded-lg border border-border bg-white py-3 pl-12 pr-4 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="min-h-12 w-full rounded-lg border border-control-border bg-white py-3 pl-12 pr-4 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -179,8 +192,9 @@ export default function LoginPage() {
                   placeholder="Digite sua senha"
                   required
                   disabled={isSubmitting}
+                  aria-invalid={invalidCredentials}
                   aria-describedby={error ? 'login-error' : undefined}
-                  className="min-h-12 w-full rounded-lg border border-border bg-white py-3 pl-12 pr-12 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
+                  className="min-h-12 w-full rounded-lg border border-control-border bg-white py-3 pl-12 pr-14 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
                 />
 
                 <button
@@ -189,7 +203,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   aria-pressed={showPassword}
-                  className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-text-secondary hover:bg-background hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-text-secondary hover:bg-background hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -207,6 +221,8 @@ export default function LoginPage() {
             {error && (
               <p
                 id="login-error"
+                data-form-errors
+                tabIndex={-1}
                 role="alert"
                 className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
               >

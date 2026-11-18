@@ -16,6 +16,7 @@ import { clinicError, formatClinicDocument } from '../lib/clinic'
 import { useClinicMutations } from '../hooks/use-clinics'
 import type { Clinic, CreateClinicPayload, UpdateClinicPayload } from '../types/clinic'
 import { ClinicFormFields } from './ClinicFormFields'
+import { maskPhone, maskZipCode } from '../../patients/lib/patient-format'
 const editable = [
   'name',
   'phone',
@@ -53,9 +54,9 @@ export function ClinicForm({
     defaultValues: {
       name: clinic?.name || '',
       document: clinic ? formatClinicDocument(clinic.document) : '',
-      phone: clinic?.phone || '',
+      phone: maskPhone(clinic?.phone || ''),
       email: clinic?.email || '',
-      zipCode: clinic?.zipCode || '',
+      zipCode: maskZipCode(clinic?.zipCode || ''),
       street: clinic?.street || '',
       number: clinic?.number || '',
       complement: clinic?.complement || '',

@@ -1,6 +1,7 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 import { inputClass } from '../../appointments/components/Selectors'
 import type { ClinicFormInput } from '../schemas/clinic'
+import { maskPhone, maskZipCode } from '../../patients/lib/patient-format'
 const sections = [
   {
     title: 'Identificação',
@@ -19,7 +20,7 @@ const sections = [
   {
     title: 'Endereço',
     fields: [
-      ['zipCode', 'CEP', 8],
+      ['zipCode', 'CEP', 9],
       ['street', 'Logradouro', 150],
       ['number', 'Número', 20],
       ['complement', 'Complemento', 100],
@@ -49,6 +50,7 @@ export function ClinicFormFields({
           {section.fields.map(([name, label, max]) => {
             const readOnly = edit && ['document', 'zipCode', 'city'].includes(name)
             const error = errors[name]?.message
+            const field = register(name)
             const help = readOnly
               ? 'Disponível somente para consulta nesta edição.'
               : name === 'document'
@@ -67,7 +69,21 @@ export function ClinicFormFields({
                 </label>
                 <input
                   id={`clinic-${name}`}
-                  {...register(name)}
+                  {...field}
+                  onBlur={(event) => {
+                    const next = readOnly
+                      ? event.currentTarget.value
+                      : name === 'phone'
+                        ? maskPhone(event.currentTarget.value)
+                        : name === 'zipCode'
+                          ? maskZipCode(event.currentTarget.value)
+                          : event.currentTarget.value
+                    if (next !== event.currentTarget.value) {
+                      event.currentTarget.value = next
+                      void field.onChange({ type: 'change', target: event.currentTarget })
+                    }
+                    void field.onBlur(event)
+                  }}
                   type={name === 'email' ? 'email' : name === 'phone' ? 'tel' : 'text'}
                   maxLength={max}
                   readOnly={readOnly}

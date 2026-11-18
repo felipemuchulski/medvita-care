@@ -1,10 +1,11 @@
+import { SessionLoading } from '../components/SessionLoading'
 import { Navigate, Outlet } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 
 export default function PublicOnlyRoute() {
   const { status } = useAuth()
 
-  if (status === 'loading') return <p role="status">Recuperando sessão…</p>
+  if (status === 'loading') return <SessionLoading />
 
   if (status === 'authenticated')
     return (

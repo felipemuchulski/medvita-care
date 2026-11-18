@@ -1,3 +1,4 @@
+import { sessionGreeting, selectedClinicName } from '../lib/session-presentation'
 import { Link } from 'react-router'
 import { useAuth } from '../hooks/use-auth'
 import { useClinic } from '../hooks/use-clinic'
@@ -80,6 +81,8 @@ export default function DashboardPage() {
       key={`${clinic.activeClinicId}:${user.id}:${clinic.activeRole}`}
       clinic={clinic.activeClinicId}
       user={user.id}
+      name={user.name}
+      clinicName={selectedClinicName(clinic)}
       role={clinic.activeRole}
       now={now}
     />
@@ -91,11 +94,15 @@ function OperationalDashboard({
   user,
   role,
   now,
+  name,
+  clinicName,
 }: {
   clinic: string
   user: string
   role: ClinicRole
   now: number
+  name: string
+  clinicName: string
 }) {
   const query = useDashboard(clinic, user, role, now)
   const { today, first, last } = dashboardPeriod(now)
@@ -107,6 +114,8 @@ function OperationalDashboard({
     <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
       <header className="space-y-3">
         <h1 className="text-2xl font-bold">Visão geral</h1>
+        <p className="font-medium">{sessionGreeting(name)}</p>
+        <p className="text-sm text-text-secondary">Clínica: {clinicName}</p>
         <p>
           {clinical
             ? 'Sua agenda e seus atendimentos.'

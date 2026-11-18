@@ -106,7 +106,7 @@ function PatientsContent({
               aria-label="Filtrar por status"
               value={activeFilter}
               onChange={(event) => filters.update({ active: event.target.value })}
-              className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base"
+              className="min-h-11 w-full rounded-lg border border-control-border bg-white px-3 py-2 text-base"
             >
               <option value="active">Ativos</option>
               <option value="inactive">Inativos</option>
@@ -165,7 +165,7 @@ function PatientsContent({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h2 className="truncate font-semibold">{patient.name}</h2>
+                    <h2 className="break-words font-semibold">{patient.name}</h2>
                     <p className="mt-1 text-sm text-text-secondary">
                       CPF: {formatCpf(patient.cpf)}
                     </p>
@@ -186,7 +186,7 @@ function PatientsContent({
           </div>
 
           <div className="hidden overflow-hidden rounded-xl border border-border bg-white shadow-sm md:block">
-            <table className="w-full border-collapse text-left">
+            <table className="w-full table-fixed border-collapse text-left">
               <thead className="bg-background text-sm text-text-secondary">
                 <tr>
                   <th className="px-5 py-3 font-medium">Nome</th>

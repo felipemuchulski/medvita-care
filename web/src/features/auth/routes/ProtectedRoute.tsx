@@ -1,3 +1,4 @@
+import { SessionLoading } from '../components/SessionLoading'
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../../../hooks/use-auth'
 
@@ -5,7 +6,7 @@ export default function ProtectedRoute() {
   const { status } = useAuth()
   const location = useLocation()
 
-  if (status === 'loading') return <p role="status">Recuperando sessão…</p>
+  if (status === 'loading') return <SessionLoading />
 
   if (status !== 'authenticated') {
     return (

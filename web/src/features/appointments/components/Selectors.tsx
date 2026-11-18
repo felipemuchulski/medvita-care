@@ -5,11 +5,11 @@ import { SearchField } from '../../../components/filters/SearchField'
 import { useProfessionals } from '../../professionals/hooks/use-professionals'
 
 export const inputClass =
-  'h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base'
+  'h-11 w-full min-w-0 rounded-lg border border-control-border bg-white px-3 py-2 text-base'
 export const buttonClass =
   'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-primary px-4 py-2 text-primary font-medium disabled:opacity-50'
 export const compactButtonClass =
-  'inline-flex h-[30px] min-w-[30px] shrink-0 items-center justify-center self-center rounded-lg border border-primary px-3 py-0 text-sm font-medium text-primary disabled:opacity-50'
+  'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center self-center rounded-lg border border-primary px-3 py-0 text-sm font-medium text-primary disabled:opacity-50'
 
 export function PatientSelector({
   clinic,

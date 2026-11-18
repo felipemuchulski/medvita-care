@@ -1,14 +1,1 @@
-import { useSyncExternalStore } from "react";
-const query = "(min-width: 1024px)";
-function subscribe(callback: () => void) {
-  const media = window.matchMedia(query);
-  media.addEventListener("change", callback);
-  return () => media.removeEventListener("change", callback);
-}
-export function useResponsiveCalendar() {
-  return useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(query).matches,
-    () => false,
-  );
-}
+export { useDesktopLayout as useResponsiveCalendar } from '../../../hooks/use-desktop-layout'

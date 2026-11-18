@@ -2,6 +2,8 @@ import { FieldError, FormErrorSummary } from '../../../components/forms/FormFeed
 import { useFormErrorFocus, formApiError } from '../../../lib/form-feedback'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
+import type { UseFormRegisterReturn } from 'react-hook-form'
+import type { FocusEvent } from 'react'
 import { Link } from 'react-router'
 import { isApiError } from '../../../api/api-error'
 import {
@@ -10,7 +12,7 @@ import {
   toPatientPayload,
   type PatientFormValues,
 } from '../lib/patient-schema'
-import { maskCpf } from '../lib/patient-format'
+import { editableCpf, maskPhone, maskZipCode } from '../lib/patient-format'
 import type { Patient, PatientPayload } from '../types/patient'
 
 interface PatientFormProps {
@@ -21,7 +23,7 @@ interface PatientFormProps {
 }
 
 const inputClassName =
-  'min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:opacity-70'
+  'min-h-11 w-full rounded-lg border border-control-border bg-white px-3 py-2 text-base text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:opacity-70'
 const labelClassName = 'mb-1 block text-sm font-medium text-text-primary'
 
 export default function PatientForm({
@@ -43,6 +45,18 @@ export default function PatientForm({
     defaultValues: patientToFormValues(patient),
   })
   const cpfField = register('cpf')
+  const phoneField = register('phone')
+  const zipField = register('zipCode')
+  const formatOnBlur =
+    (field: UseFormRegisterReturn, format: (value: string) => string) =>
+    (event: FocusEvent<HTMLInputElement>) => {
+      const next = format(event.currentTarget.value)
+      if (next !== event.currentTarget.value) {
+        event.currentTarget.value = next
+        void field.onChange({ type: 'change', target: event.currentTarget })
+      }
+      void field.onBlur(event)
+    }
 
   async function submit(values: PatientFormValues): Promise<void> {
     try {
@@ -155,16 +169,13 @@ export default function PatientForm({
               {...cpfField}
               id="cpf"
               inputMode="numeric"
-              maxLength={14}
+              maxLength={20}
               placeholder="000.000.000-00"
               aria-invalid={Boolean(errors.cpf)}
               aria-describedby={errors.cpf ? 'cpf-error' : undefined}
               disabled={isSubmitting}
               className={inputClassName}
-              onChange={(event) => {
-                event.target.value = maskCpf(event.target.value)
-                void cpfField.onChange(event)
-              }}
+              onBlur={formatOnBlur(cpfField, editableCpf)}
             />
             <FieldError
               id="cpf-error"
@@ -246,7 +257,8 @@ export default function PatientForm({
               aria-describedby={errors.phone ? 'phone-error' : undefined}
               disabled={isSubmitting}
               className={inputClassName}
-              {...register('phone')}
+              {...phoneField}
+              onBlur={formatOnBlur(phoneField, maskPhone)}
             />
             <FieldError
               id="phone-error"
@@ -298,7 +310,8 @@ export default function PatientForm({
               aria-describedby={errors.zipCode ? 'zipCode-error' : undefined}
               disabled={isSubmitting}
               className={inputClassName}
-              {...register('zipCode')}
+              {...zipField}
+              onBlur={formatOnBlur(zipField, maskZipCode)}
             />
             <FieldError
               id="zipCode-error"

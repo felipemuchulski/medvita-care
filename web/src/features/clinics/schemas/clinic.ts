@@ -17,7 +17,11 @@ export const clinicSchema = z.object({
     (value) => !value || z.email().safeParse(value).success,
     'Informe um e-mail válido.',
   ),
-  zipCode: text(8),
+  zipCode: z
+    .string()
+    .trim()
+    .transform((value) => (/^\d{5}-\d{3}$/.test(value) ? value.replace('-', '') : value))
+    .pipe(z.string().max(8, 'Use até 8 caracteres.')),
   street: text(150),
   number: text(20),
   complement: text(100),

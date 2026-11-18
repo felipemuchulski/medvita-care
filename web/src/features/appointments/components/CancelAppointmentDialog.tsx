@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useModalDialog } from '../../../hooks/use-modal-dialog'
+import { useRef, useState } from 'react'
 import type { Appointment } from '../types/appointment'
 import { formatAppointment } from '../lib/appointment'
 import { buttonClass, inputClass } from './Selectors'
@@ -18,24 +19,18 @@ export function CancelAppointmentDialog({
   const dialog = useRef<HTMLDialogElement>(null)
   const [reason, setReason] = useState('')
   const lock = useRef(false)
-  useEffect(() => {
-    const el = dialog.current!
-    const previous = document.activeElement as HTMLElement | null
-    el.showModal()
-    return () => {
-      el.close()
-      previous?.focus()
-    }
-  }, [])
+  useModalDialog(dialog)
+
   return (
     <dialog
       ref={dialog}
+      aria-modal="true"
       aria-labelledby="cancel-title"
       onCancel={(e) => {
         e.preventDefault()
         if (!pending) onClose()
       }}
-      className="m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-lg overflow-y-auto rounded-xl p-4 backdrop:bg-black/40 sm:p-6"
+      className="m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-lg min-w-0 overflow-y-auto overscroll-contain [overflow-wrap:anywhere] rounded-xl p-4 backdrop:bg-black/40 sm:p-6"
     >
       <form
         className="space-y-4"
@@ -63,11 +58,14 @@ export function CancelAppointmentDialog({
         <label className="form-field">
           Motivo obrigatório
           <textarea
-            autoFocus
+            data-autofocus
             required
             minLength={3}
             maxLength={500}
-            className={inputClass}
+            rows={3}
+            className={inputClass.replace('h-11', 'min-h-28 resize-y')}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'cancel-error' : undefined}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             disabled={pending}
@@ -75,6 +73,7 @@ export function CancelAppointmentDialog({
         </label>
         {error && (
           <p
+            id="cancel-error"
             role="alert"
             className="text-red-800"
           >

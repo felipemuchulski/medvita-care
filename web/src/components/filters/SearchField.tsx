@@ -25,7 +25,7 @@ export function SearchField({
             search.flush()
           }
         }}
-        className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-primary"
+        className="min-h-11 w-full min-w-0 rounded-lg border border-control-border bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-primary"
       />
     </label>
   )

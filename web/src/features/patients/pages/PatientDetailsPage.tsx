@@ -8,7 +8,12 @@ import { useClinic } from '../../../hooks/use-clinic'
 import PatientStatusBadge from '../components/PatientStatusBadge'
 import PatientsUnavailable from '../components/PatientsUnavailable'
 import { usePatient, useUpdatePatientStatus } from '../hooks/use-patients'
-import { formatCpf, formatDateOnly, formatZipCode } from '../lib/patient-format'
+import {
+  formatCpf,
+  formatDateOnly,
+  formatZipCode,
+  formatPhone,
+} from '../lib/patient-format'
 import {
   canChangePatientStatus,
   canReadPatients,
@@ -163,7 +168,7 @@ export default function PatientDetailsPage() {
           />
           <Detail
             label="Telefone"
-            value={patient.phone}
+            value={formatPhone(patient.phone)}
           />
           <Detail
             label="E-mail"
