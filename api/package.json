@@ -16,6 +16,7 @@
     "test:http-security": "npm run build && node --test test/http-security.test.cjs test/appointment-create-permissions.test.cjs test/appointment-response-http.test.cjs",
     "test:authorization": "npm run build && node --test test/authorization-guard.test.cjs test/authorization-http.test.cjs test/route-policy-coverage.test.cjs test/http-security.test.cjs test/appointment-create-permissions.test.cjs test/appointment-response-http.test.cjs",
     "test:route-policies": "npm run build && node --test test/route-policy-coverage.test.cjs",
+    "test:system-admin-permissions": "npm run build && node --test test/system-admin-permissions.test.cjs test/authorization-guard.test.cjs test/authorization-http.test.cjs test/route-policy-coverage.test.cjs test/http-security.test.cjs test/appointment-create-permissions.test.cjs test/appointment-response-http.test.cjs",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/database/data-source.ts",

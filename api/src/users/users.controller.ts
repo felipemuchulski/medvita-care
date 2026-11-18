@@ -31,20 +31,29 @@ export class UsersController {
 
   @Post()
   @SystemAdmin()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.userService.createUser(createUserDto, currentUser);
   }
 
   @Get()
   @SystemAdmin()
-  findAll(@Query() query: FindUsersQueryDto) {
-    return this.userService.findAll(query);
+  findAll(
+    @Query() query: FindUsersQueryDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.userService.findAll(query, currentUser);
   }
 
   @Get(":id")
   @SystemAdmin()
-  findById(@Param("id", new ParseUUIDPipe()) id: string) {
-    return this.userService.findById(id);
+  findById(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.userService.findByIdForAdmin(id, currentUser);
   }
 
   @Patch(":id")
@@ -52,8 +61,9 @@ export class UsersController {
   update(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ) {
-    return this.userService.updateUser(id, updateUserDto);
+    return this.userService.updateUser(id, updateUserDto, currentUser);
   }
 
   @Patch(":id/active")
@@ -61,8 +71,9 @@ export class UsersController {
   updateActive(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() updateActiveDto: UpdateActiveUserDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ) {
-    return this.userService.updateActive(id, updateActiveDto);
+    return this.userService.updateActive(id, updateActiveDto, currentUser);
   }
 
   @Patch(":id/password")

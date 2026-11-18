@@ -12,6 +12,12 @@ import { normalizedEmail } from "src/common/utils/normalize-email.utils";
 import { UpdateClinicDto } from "./dto/update-clinic.dto";
 import { UpdateActiveDto } from "./dto/update-active.dto";
 import { isUniqueViolation } from "src/common/utils/database-error.util";
+import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
+import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
+import {
+  assertAdministrativeClinicAccess,
+  assertSystemAdmin,
+} from "src/common/authorization/administrative-access";
 
 @Injectable()
 export class ClinicService {
@@ -20,7 +26,8 @@ export class ClinicService {
     private readonly clinicRepository: Repository<Clinic>,
   ) {}
 
-  async create(createClinicDto: CreateClinicDto) {
+  async create(createClinicDto: CreateClinicDto, user: AuthenticatedUser) {
+    assertSystemAdmin(user);
     const documentNormalized = normalizedDocument(createClinicDto.document);
     const documentExist = await this.clinicRepository.findOneBy({
       document: documentNormalized,
@@ -55,11 +62,13 @@ export class ClinicService {
     }
   }
 
-  async findAll() {
+  async findAll(user: AuthenticatedUser) {
+    assertSystemAdmin(user);
     return await this.clinicRepository.find();
   }
 
-  async findByDocument(document: string) {
+  async findByDocument(document: string, user: AuthenticatedUser) {
+    assertSystemAdmin(user);
     const documentNormalized = normalizedDocument(document);
     const documentClinic = await this.clinicRepository.findOneBy({
       document: documentNormalized,
@@ -99,7 +108,21 @@ export class ClinicService {
     return clinic;
   }
 
-  async updateClinic(id: string, updateClinicDto: UpdateClinicDto) {
+  async findByIdForUser(id: string, user: AuthenticatedUser) {
+    assertAdministrativeClinicAccess(user, id, [
+      ClinicUserRole.ADMIN,
+      ClinicUserRole.OPHTHALMOLOGIST,
+      ClinicUserRole.RECEPTIONIST,
+    ]);
+    return this.findById(id);
+  }
+
+  async updateClinic(
+    id: string,
+    updateClinicDto: UpdateClinicDto,
+    user: AuthenticatedUser,
+  ) {
+    assertAdministrativeClinicAccess(user, id, [ClinicUserRole.ADMIN]);
     const clinic = await this.findById(id);
 
     if (updateClinicDto.email) {
@@ -110,7 +133,12 @@ export class ClinicService {
     return await this.clinicRepository.save(clinic);
   }
 
-  async updateActive(id: string, updateActiveDto: UpdateActiveDto) {
+  async updateActive(
+    id: string,
+    updateActiveDto: UpdateActiveDto,
+    user: AuthenticatedUser,
+  ) {
+    assertSystemAdmin(user);
     const clinic = await this.findById(id);
     clinic.active = updateActiveDto.active;
 

@@ -7,6 +7,7 @@ const { Public } = require("../dist/common/decorators/public.decorator");
 const { Authenticated } = require("../dist/common/decorators/authenticated.decorator");
 const { SystemAdmin } = require("../dist/common/decorators/system-admin.decorator");
 const { ClinicRoles, Roles } = require("../dist/common/decorators/roles.decorator");
+const { SystemAdminOrClinicRoles } = require("../dist/common/decorators/system-admin-or-clinic-roles.decorator");
 const guard = new AuthorizationGuard(new Reflector());
 
 function fixture(classDecorators = [], methodDecorators = [], user, params = {}, headerClinic) {
@@ -56,9 +57,10 @@ test("Authenticated on a method does not remove class role/SystemAdmin requireme
   deny(fixture([ClinicRoles("clinicId", "ADMIN")], [Authenticated()], actor(), { clinicId: "clinic" }));
   assert.equal(guard.canActivate(fixture([Authenticated()], [], actor())), true);
 });
-test("different restrictive keys keep their existing semantics", () => {
+test("different restrictive keys are cumulative; only an explicit administrative OR permits global access", () => {
   deny(fixture([SystemAdmin()], [ClinicRoles("clinicId", "ADMIN")], actor("ADMIN"), { clinicId: "clinic" }));
-  assert.equal(guard.canActivate(fixture([SystemAdmin()], [Roles("ADMIN")], { isSystemAdmin: true })), true);
+  deny(fixture([SystemAdmin()], [Roles("ADMIN")], { isSystemAdmin: true, clinicRoles: [] }, {}, "clinic"));
+  assert.equal(guard.canActivate(fixture([SystemAdmin()], [Roles("ADMIN")], { ...actor("ADMIN"), isSystemAdmin: true }, {}, "clinic")), true);
 });
 test("ambiguous Public/private policies and empty roles fail closed", () => {
   for (const [parent, method] of [
@@ -66,7 +68,10 @@ test("ambiguous Public/private policies and empty roles fail closed", () => {
     [[ClinicRoles("clinicId", "ADMIN")], [Public()]], [[], [Roles()]],
   ]) deny(fixture(parent, method, { isSystemAdmin: true }));
 });
-test("A02 guard bypass remains, but does not permit unannotated routes", () => {
-  assert.equal(guard.canActivate(fixture([], [ClinicRoles("clinicId", "OPHTHALMOLOGIST")], { isSystemAdmin: true, clinicRoles: [] })), true);
+test("global admin needs an explicit administrative exception; local-only roles are never bypassed", () => {
+  deny(fixture([], [ClinicRoles("clinicId", "OPHTHALMOLOGIST")], { isSystemAdmin: true, clinicRoles: [] }));
+  assert.equal(guard.canActivate(fixture([], [SystemAdminOrClinicRoles("clinicId", "ADMIN")], { isSystemAdmin: true, clinicRoles: [] })), true);
+  assert.equal(guard.canActivate(fixture([], [SystemAdminOrClinicRoles("clinicId", "ADMIN")], actor("ADMIN"), { clinicId: "clinic" })), true);
+  deny(fixture([], [SystemAdminOrClinicRoles("clinicId", "ADMIN")], actor(), { clinicId: "clinic" }));
   deny(fixture([], [], { isSystemAdmin: true, clinicRoles: [] }));
 });

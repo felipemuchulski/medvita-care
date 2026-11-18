@@ -15,6 +15,7 @@ import {
 import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
 import { IS_PUBLIC_KEY } from "src/common/decorators/public.decorator";
 import { IS_AUTHENTICATED_KEY } from "src/common/decorators/authenticated.decorator";
+import { SYSTEM_ADMIN_OR_CLINIC_ROLES_KEY } from "src/common/decorators/system-admin-or-clinic-roles.decorator";
 
 type AuthenticatedRequest = Request & { user?: AuthenticatedUser };
 
@@ -42,7 +43,12 @@ export class AuthorizationGuard implements CanActivate {
     );
 
     const hasRolePolicy = requiredRoles !== undefined;
+    const allowsSystemAdmin = this.reflector.get<boolean>(
+      SYSTEM_ADMIN_OR_CLINIC_ROLES_KEY,
+      context.getHandler(),
+    );
     if (
+      (allowsSystemAdmin && (!hasRolePolicy || requiresSystemAdmin)) ||
       (hasRolePolicy && !requiredRoles?.length) ||
       (isPublic &&
         (requiresAuthentication || requiresSystemAdmin || hasRolePolicy))
@@ -67,15 +73,16 @@ export class AuthorizationGuard implements CanActivate {
 
     if (!requiresSystemAdmin && !hasRolePolicy) return true;
 
-    if (user.isSystemAdmin) {
-      return true;
+    if (requiresSystemAdmin) {
+      if (!user.isSystemAdmin) {
+        throw new ForbiddenException(
+          "Acesso restrito a administradores do sistema.",
+        );
+      }
+      if (!hasRolePolicy) return true;
     }
 
-    if (requiresSystemAdmin) {
-      throw new ForbiddenException(
-        "Acesso restrito a administradores do sistema.",
-      );
-    }
+    if (allowsSystemAdmin && user.isSystemAdmin) return true;
 
     const clinicIdParam = this.reflector.getAllAndOverride<string>(
       CLINIC_ID_PARAM_KEY,

@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
-import { ClinicRoles } from "src/common/decorators/roles.decorator";
+import { SystemAdminOrClinicRoles } from "src/common/decorators/system-admin-or-clinic-roles.decorator";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { ClinicUserRole } from "src/clinic-users/entities/clinic-user.entity";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
@@ -20,7 +20,7 @@ export class ProfessionalsController {
   constructor(private readonly professionalsService: ProfessionalsService) {}
 
   @Post()
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
   create(
     @Param("clinicId", new ParseUUIDPipe({ version: "4" })) clinicId: string,
     @CurrentUser() currentUser: AuthenticatedUser,
@@ -30,7 +30,7 @@ export class ProfessionalsController {
   }
 
   @Get()
-  @ClinicRoles(
+  @SystemAdminOrClinicRoles(
     "clinicId",
     ClinicUserRole.ADMIN,
     ClinicUserRole.OPHTHALMOLOGIST,
@@ -44,7 +44,7 @@ export class ProfessionalsController {
   }
 
   @Get("user/:userId")
-  @ClinicRoles(
+  @SystemAdminOrClinicRoles(
     "clinicId",
     ClinicUserRole.ADMIN,
     ClinicUserRole.OPHTHALMOLOGIST,
@@ -59,7 +59,7 @@ export class ProfessionalsController {
   }
 
   @Get("crm/:crm/:crmState")
-  @ClinicRoles(
+  @SystemAdminOrClinicRoles(
     "clinicId",
     ClinicUserRole.ADMIN,
     ClinicUserRole.OPHTHALMOLOGIST,
@@ -80,7 +80,7 @@ export class ProfessionalsController {
   }
 
   @Get(":id")
-  @ClinicRoles(
+  @SystemAdminOrClinicRoles(
     "clinicId",
     ClinicUserRole.ADMIN,
     ClinicUserRole.OPHTHALMOLOGIST,
@@ -95,7 +95,7 @@ export class ProfessionalsController {
   }
 
   @Patch(":id")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
   update(
     @Param("clinicId", new ParseUUIDPipe({ version: "4" })) clinicId: string,
     @Param("id", new ParseUUIDPipe({ version: "4" })) id: string,

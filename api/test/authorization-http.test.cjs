@@ -181,7 +181,7 @@ test("HTTP: global admin flag is separate from local roles; memberships and URL 
   await f.get(`/policy/clinics/${f.clinicId}`, token).expect(403);
   f.user.isSystemAdmin = true;
   await f.get("/policy/admin", token).expect(200);
-  await f.get(`/policy/clinics/${f.clinicId}`, token).expect(200); // Existing guard bypass; services still apply A02.
+  await f.get(`/policy/clinics/${f.clinicId}`, token).expect(403); // Global flag cannot replace local membership.
 });
 test("HTTP: real membership controller preserves self/global identity checks", async t => {
   const f = await fixture(t), token = f.access().token;
@@ -228,10 +228,10 @@ test("HTTP: physician exam access remains scoped/audited and grants no clinical 
     await f.get(`${base}/${f.examId}`, token).expect(403);
   }
   f.user.isSystemAdmin = true; f.user.clinicUsers = [];
-  await f.get(`${base}/${f.examId}`, token).expect(403); // A02 remains in ExamsService, beyond the guard bypass.
+  await f.get(`${base}/${f.examId}`, token).expect(403); // Both guard and service now require local permission.
 });
 
-test("A02: real local/clinical services still deny global admin without local membership", async () => {
+test("real local/clinical services deny global admin without local membership", async () => {
   const actor = { sub: randomUUID(), isSystemAdmin: true, clinicRoles: [] }, clinic = randomUUID();
   const { AppointmentsService } = load("appointments/appointments.service");
   const { PatientsService } = load("patients/patients.service");

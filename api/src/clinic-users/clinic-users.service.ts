@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -16,6 +17,7 @@ import { ClinicUser, ClinicUserRole } from "./entities/clinic-user.entity";
 import { AuditService } from "src/audit/audit.service";
 import { AuditAction } from "src/audit/entities/audit-log.entity";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
+import { assertAdministrativeClinicAccess } from "src/common/authorization/administrative-access";
 
 @Injectable()
 export class ClinicUsersService {
@@ -32,6 +34,9 @@ export class ClinicUsersService {
     dto: CreateClinicUserDto,
     currentUser: AuthenticatedUser,
   ) {
+    assertAdministrativeClinicAccess(currentUser, clinicId, [
+      ClinicUserRole.ADMIN,
+    ]);
     const [clinic, user] = await Promise.all([
       this.clinicService.findById(clinicId),
       this.userService.findById(dto.userId),
@@ -107,7 +112,12 @@ export class ClinicUsersService {
     }
   }
 
-  async findByClinic(clinicId: string) {
+  async findByClinic(clinicId: string, currentUser: AuthenticatedUser) {
+    assertAdministrativeClinicAccess(currentUser, clinicId, [
+      ClinicUserRole.ADMIN,
+      ClinicUserRole.OPHTHALMOLOGIST,
+      ClinicUserRole.RECEPTIONIST,
+    ]);
     await this.clinicService.findById(clinicId);
 
     const memberships = await this.clinicUsersRepository.find({
@@ -135,7 +145,15 @@ export class ClinicUsersService {
     }));
   }
 
-  async findByUser(userId: string) {
+  async findByUser(userId: string, currentUser: AuthenticatedUser) {
+    if (
+      !currentUser ||
+      (currentUser.sub !== userId && !currentUser.isSystemAdmin)
+    ) {
+      throw new ForbiddenException(
+        "Você só pode consultar os próprios vínculos com clínicas.",
+      );
+    }
     await this.userService.findById(userId);
 
     const memberships = await this.clinicUsersRepository.find({
@@ -182,6 +200,9 @@ export class ClinicUsersService {
     dto: UpdateClinicUserRoleDto,
     currentUser: AuthenticatedUser,
   ) {
+    assertAdministrativeClinicAccess(currentUser, clinicId, [
+      ClinicUserRole.ADMIN,
+    ]);
     await Promise.all([
       this.clinicService.findById(clinicId),
       this.userService.findById(userId),
@@ -231,6 +252,9 @@ export class ClinicUsersService {
     dto: UpdateClinicUserActiveDto,
     currentUser: AuthenticatedUser,
   ) {
+    assertAdministrativeClinicAccess(currentUser, clinicId, [
+      ClinicUserRole.ADMIN,
+    ]);
     const [clinic, user] = await Promise.all([
       this.clinicService.findById(clinicId),
       this.userService.findById(userId),

@@ -9,18 +9,40 @@ const { MetadataScanner, Reflector } = require("@nestjs/core");
 const { METHOD_METADATA } = require("@nestjs/common/constants");
 const { AuthorizationGuard } = require("../dist/auth/guards/authorization.guard");
 const { DataSource } = require("typeorm");
+const { SYSTEM_ADMIN_OR_CLINIC_ROLES_KEY } = require("../dist/common/decorators/system-admin-or-clinic-roles.decorator");
 DataSource.prototype.initialize = async () => { throw new Error("Database forbidden in policy coverage"); };
 
 function checkController(controller) {
+  assert.notEqual(Reflect.getMetadata(SYSTEM_ADMIN_OR_CLINIC_ROLES_KEY, controller), true, "Global exceptions must be per endpoint");
+  const administrativeExceptions = new Set([
+    "ClinicController.findById", "ClinicController.update",
+    "ClinicUsersController.create", "ClinicUsersController.findByClinic", "ClinicUsersController.updateRole", "ClinicUsersController.updateActive",
+    "ProfessionalsController.create", "ProfessionalsController.findByClinic", "ProfessionalsController.findByUser", "ProfessionalsController.findByCrm", "ProfessionalsController.findById", "ProfessionalsController.update",
+  ]);
   const guard = new AuthorizationGuard(new Reflector());
   const routes = new MetadataScanner().getAllMethodNames(controller.prototype)
     .filter(name => Reflect.hasMetadata(METHOD_METADATA, controller.prototype[name]));
   for (const name of routes) {
+    const handler = controller.prototype[name];
+    const reflector = new Reflector();
+    const targets = [handler, controller];
+    const roles = reflector.getAllAndOverride("clinicRoles", targets);
+    const clinicParam = reflector.getAllAndOverride("clinicIdParam", targets);
+    const exception = Reflect.getMetadata(SYSTEM_ADMIN_OR_CLINIC_ROLES_KEY, handler);
+    if (exception) assert.ok(administrativeExceptions.has(`${controller.name}.${name}`), "Unexpected global exception; review A02 policy");
     const context = {
-      getClass: () => controller, getHandler: () => controller.prototype[name],
-      switchToHttp: () => ({ getRequest: () => ({ user: { isSystemAdmin: true, clinicRoles: [] } }) }),
+      getClass: () => controller, getHandler: () => handler,
+      switchToHttp: () => ({ getRequest: () => ({
+        user: { isSystemAdmin: true, clinicRoles: roles?.length ? [{ clinicId: "synthetic-clinic", role: roles[0] }] : [] },
+        params: clinicParam ? { [clinicParam]: "synthetic-clinic" } : {},
+        header: () => "synthetic-clinic",
+      }) }),
     };
     assert.doesNotThrow(() => guard.canActivate(context), `${controller.name}.${name}: missing/invalid authorization policy`);
+    if (roles?.length && !exception && !reflector.getAllAndOverride("requiresSystemAdmin", targets)) {
+      const withoutMembership = { ...context, switchToHttp: () => ({ getRequest: () => ({ user: { isSystemAdmin: true, clinicRoles: [] }, params: {} }) }) };
+      assert.throws(() => guard.canActivate(withoutMembership), { status: 403 }, "Local roles must not permit a universal global bypass");
+    }
   }
   return routes.length;
 }

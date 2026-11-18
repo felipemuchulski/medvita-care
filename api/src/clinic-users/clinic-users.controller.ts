@@ -9,7 +9,7 @@ import {
   Post,
 } from "@nestjs/common";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
-import { ClinicRoles } from "src/common/decorators/roles.decorator";
+import { SystemAdminOrClinicRoles } from "src/common/decorators/system-admin-or-clinic-roles.decorator";
 import { Authenticated } from "src/common/decorators/authenticated.decorator";
 import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
 import { ClinicUsersService } from "./clinic-users.service";
@@ -25,7 +25,7 @@ export class ClinicUsersController {
   constructor(private readonly clinicUsersService: ClinicUsersService) {}
 
   @Post("clinics/:clinicId/users")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
   create(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Body() dto: CreateClinicUserDto,
@@ -35,14 +35,17 @@ export class ClinicUsersController {
   }
 
   @Get("clinics/:clinicId/users")
-  @ClinicRoles(
+  @SystemAdminOrClinicRoles(
     "clinicId",
     ClinicUserRole.ADMIN,
     ClinicUserRole.OPHTHALMOLOGIST,
     ClinicUserRole.RECEPTIONIST,
   )
-  findByClinic(@Param("clinicId", uuidPipe) clinicId: string) {
-    return this.clinicUsersService.findByClinic(clinicId);
+  findByClinic(
+    @Param("clinicId", uuidPipe) clinicId: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ) {
+    return this.clinicUsersService.findByClinic(clinicId, currentUser);
   }
 
   @Get("users/:userId/clinics")
@@ -57,11 +60,11 @@ export class ClinicUsersController {
       );
     }
 
-    return this.clinicUsersService.findByUser(userId);
+    return this.clinicUsersService.findByUser(userId, currentUser);
   }
 
   @Patch("clinics/:clinicId/users/:userId/role")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
   updateRole(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("userId", uuidPipe) userId: string,
@@ -77,7 +80,7 @@ export class ClinicUsersController {
   }
 
   @Patch("clinics/:clinicId/users/:userId/active")
-  @ClinicRoles("clinicId", ClinicUserRole.ADMIN)
+  @SystemAdminOrClinicRoles("clinicId", ClinicUserRole.ADMIN)
   updateActive(
     @Param("clinicId", uuidPipe) clinicId: string,
     @Param("userId", uuidPipe) userId: string,

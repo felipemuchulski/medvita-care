@@ -12,6 +12,8 @@ import { normalizedEmail } from "src/common/utils/normalize-email.utils";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UpdateActiveUserDto } from "./dto/update-active.dto";
 import { isUniqueViolation } from "src/common/utils/database-error.util";
+import { AuthenticatedUser } from "src/auth/types/jwt-payload.type";
+import { assertSystemAdmin } from "src/common/authorization/administrative-access";
 
 @Injectable()
 export class UserService {
@@ -21,7 +23,11 @@ export class UserService {
     private readonly hashingService: HashingService,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(
+    createUserDto: CreateUserDto,
+    currentUser: AuthenticatedUser,
+  ) {
+    assertSystemAdmin(currentUser);
     const email = normalizedEmail(createUserDto.email);
     const userExist = await this.usersRepository.findOneBy({ email: email });
 
@@ -54,7 +60,11 @@ export class UserService {
     }
   }
 
-  async findAll(filters: { email?: string; active?: boolean }) {
+  async findAll(
+    filters: { email?: string; active?: boolean },
+    currentUser: AuthenticatedUser,
+  ) {
+    assertSystemAdmin(currentUser);
     const where: Record<string, unknown> = {};
 
     if (filters.email) where.email = normalizedEmail(filters.email);
@@ -71,6 +81,11 @@ export class UserService {
     }
 
     return userId;
+  }
+
+  async findByIdForAdmin(id: string, currentUser: AuthenticatedUser) {
+    assertSystemAdmin(currentUser);
+    return this.findById(id);
   }
 
   async findForAuthentication(id: string) {
@@ -105,7 +120,12 @@ export class UserService {
     return userEmail;
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto) {
+  async updateUser(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    currentUser: AuthenticatedUser,
+  ) {
+    assertSystemAdmin(currentUser);
     const userExist = await this.findById(id);
     const previousEmail = userExist.email;
     const previousIsSystemAdmin = userExist.isSystemAdmin;
@@ -146,7 +166,12 @@ export class UserService {
     }
   }
 
-  async updateActive(id: string, updateActiveDto: UpdateActiveUserDto) {
+  async updateActive(
+    id: string,
+    updateActiveDto: UpdateActiveUserDto,
+    currentUser: AuthenticatedUser,
+  ) {
+    assertSystemAdmin(currentUser);
     const user = await this.findById(id);
     user.active = updateActiveDto.active;
     user.tokenVersion += 1;
