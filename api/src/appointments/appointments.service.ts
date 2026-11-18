@@ -21,6 +21,7 @@ import { ListAppointmentsQueryDto } from "./dto/list-appointments-query.dto";
 import { RescheduleAppointmentDto } from "./dto/reschedule-appointment.dto";
 import { Appointment, AppointmentStatus } from "./entities/appointment.entity";
 import { Encounter } from "src/encounters/entities/encounter.entity";
+import { toAppointmentResponse } from "./dto/appointment-response.dto";
 
 const OPEN_APPOINTMENT_STATUSES = [
   AppointmentStatus.SCHEDULED,
@@ -139,12 +140,10 @@ export class AppointmentsService {
     ]);
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const builder = this.appointmentsRepository
-      .createQueryBuilder("appointment")
-      .innerJoinAndSelect("appointment.patient", "patient")
-      .innerJoinAndSelect("appointment.professional", "professional")
-      .innerJoinAndSelect("professional.user", "professionalUser")
-      .where("appointment.clinic_id = :clinicId", { clinicId });
+    const builder = this.responseQuery().where(
+      "appointment.clinic_id = :clinicId",
+      { clinicId },
+    );
 
     if (role === ClinicUserRole.OPHTHALMOLOGIST) {
       builder.andWhere("professional.user_id = :currentUserId", {
@@ -184,7 +183,7 @@ export class AppointmentsService {
       .take(limit)
       .getManyAndCount();
     return {
-      data,
+      data: data.map(toAppointmentResponse),
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -195,12 +194,7 @@ export class AppointmentsService {
       ClinicUserRole.RECEPTIONIST,
       ClinicUserRole.OPHTHALMOLOGIST,
     ]);
-    const builder = this.appointmentsRepository
-      .createQueryBuilder("appointment")
-      .innerJoinAndSelect("appointment.patient", "patient")
-      .innerJoinAndSelect("appointment.professional", "professional")
-      .innerJoinAndSelect("professional.user", "professionalUser")
-      .leftJoinAndSelect("appointment.encounter", "encounter")
+    const builder = this.responseQuery()
       .where("appointment.id = :id", { id })
       .andWhere("appointment.clinic_id = :clinicId", { clinicId });
     if (role === ClinicUserRole.OPHTHALMOLOGIST) {
@@ -214,7 +208,25 @@ export class AppointmentsService {
         "Agendamento não encontrado na clínica informada.",
       );
     }
-    return appointment;
+    return toAppointmentResponse(appointment);
+  }
+
+  private responseQuery() {
+    return this.appointmentsRepository
+      .createQueryBuilder("appointment")
+      .innerJoin("appointment.patient", "patient")
+      .addSelect(["patient.id", "patient.name"])
+      .innerJoin("appointment.professional", "professional")
+      .addSelect([
+        "professional.id",
+        "professional.userId",
+        "professional.crm",
+        "professional.crmState",
+      ])
+      .innerJoin("professional.user", "professionalUser")
+      .addSelect(["professionalUser.id", "professionalUser.name"])
+      .leftJoin("appointment.encounter", "encounter")
+      .addSelect(["encounter.id", "encounter.status"]);
   }
 
   async checkAvailability(

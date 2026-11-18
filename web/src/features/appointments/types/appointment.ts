@@ -1,4 +1,5 @@
-import type { Patient, PaginationMeta } from "../../patients/types/patient";
+import type { PaginationMeta } from "../../patients/types/patient";
+import type { EncounterStatus } from "../../medical-records/types/encounter";
 export type AppointmentStatus =
   | "SCHEDULED"
   | "CONFIRMED"
@@ -20,9 +21,11 @@ export interface Appointment {
   reason: string | null;
   notes: string | null;
   cancellationReason: string | null;
-  patient: Patient;
-  professional: Professional;
-  encounter?: { id: string } | null;
+  patient: { id: string; name: string };
+  professional: Pick<Professional, "id" | "userId" | "crm" | "crmState"> & {
+    user: { id: string; name: string };
+  };
+  encounter: { id: string; status: EncounterStatus } | null;
 }
 export interface AppointmentQuery {
   page?: number;
