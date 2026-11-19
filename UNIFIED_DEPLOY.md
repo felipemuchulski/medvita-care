@@ -145,6 +145,8 @@ VITE_API_URL é fixado em `/api` pelo build unificado; não depende do endereço
 
 ## Testes e resultados
 
+Registro histórico: os arquivos e scripts de teste citados nesta seção foram removidos a pedido do usuário em 18/11/2026. Os comandos de teste abaixo não estão mais disponíveis.
+
 Comandos executados:
 
 ```bash

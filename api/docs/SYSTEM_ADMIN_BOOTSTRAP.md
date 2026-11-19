@@ -104,6 +104,8 @@ Login/refresh dependem também da configuração publicada de URL da API, CORS, 
 
 ## Validação local reproduzível e resultados
 
+Registro histórico: os arquivos e scripts de teste citados nesta seção foram removidos a pedido do usuário em 18/11/2026. Os comandos de teste abaixo não estão mais disponíveis.
+
 ```bash
 npm run build
 npm run lint

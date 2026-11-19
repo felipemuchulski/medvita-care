@@ -8,7 +8,6 @@
     "build:local": "node scripts/build-unified.mjs --use-installed",
     "start": "node server.cjs",
     "start:prod": "node server.cjs",
-    "test:unified": "node scripts/test-unified.cjs",
     "lint": "npm --prefix api run lint && npm --prefix web run lint"
   }
 }

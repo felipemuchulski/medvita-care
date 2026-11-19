@@ -5,7 +5,6 @@ Sistema de gestão para clínicas oftalmológicas, desenvolvido como projeto de 
 
 Na raiz, `npm ci` e `npm run build` geram `deploy/` com API, React e CA pública.
 `npm start` inicia o processo Node único e conecta ao banco configurado no ambiente.
-`npm run test:unified` valida o HTTP compilado com estado em memória, sem banco.
 
 Os builds separados de `api/` e `web/` continuam disponíveis.
 Configurações da Hostinger, diferenças de prefixo, resultados e plano de migração:
