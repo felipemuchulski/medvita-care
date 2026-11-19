@@ -39,7 +39,7 @@ export function toIso(local: string, offset: string) {
     !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local) ||
     !/^[+-](?:0\d|1[0-3]):[0-5]\d$|^[+-]14:00$/.test(offset)
   )
-    throw new Error("Informe data, horário e fuso válidos.");
+    throw new Error("Informe data e horário válidos.");
   const value = `${local}:00${offset}`;
   if (
     !Number.isFinite(Date.parse(value)) ||

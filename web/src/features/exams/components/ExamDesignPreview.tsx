@@ -157,7 +157,7 @@ export default function ExamDesignPreview() {
         <h2 className="text-lg font-semibold">Registrar resultado</h2>
         <ExamField
           id="preview-performed"
-          label="Data e horário de realização (UTC−03:00)"
+          label="Data e horário de realização"
         >
           <input
             id="preview-performed"

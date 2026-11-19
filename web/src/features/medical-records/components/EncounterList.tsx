@@ -21,7 +21,7 @@ export function EncounterList({
           className="min-w-0 space-y-3 rounded-xl border border-border bg-white p-4 [overflow-wrap:anywhere]"
         >
           <h2 className="text-lg font-semibold">{record.patient.name}</h2>
-          <p>{formatAppointment(record.startedAt)} · UTC−03:00</p>
+          <p>{formatAppointment(record.startedAt)}</p>
           <p>Profissional: {record.professional.user.name}</p>
           <EncounterStatusBadge status={record.status} />
           {!history && (

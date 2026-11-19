@@ -227,8 +227,8 @@ function AppointmentScreen({
               {[
                 ['Profissional', a.professional.user.name],
                 ['CRM', `${a.professional.crm}/${a.professional.crmState}`],
-                ['Início (UTC−03:00)', formatAppointment(a.scheduledAt)],
-                ['Término (UTC−03:00)', formatAppointment(a.endsAt)],
+                ['Início da consulta: ', formatAppointment(a.scheduledAt)],
+                ['Término da consulta: ', formatAppointment(a.endsAt)],
                 ['Duração', `${a.durationMinutes} minutos`],
                 ['Motivo', a.reason || 'Não informado'],
                 ['Observações', a.notes || 'Não informadas'],

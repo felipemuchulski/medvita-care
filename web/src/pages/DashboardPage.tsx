@@ -105,9 +105,8 @@ function OperationalDashboard({
   clinicName: string
 }) {
   const query = useDashboard(clinic, user, role, now)
-  const { today, first, last } = dashboardPeriod(now)
+  const { today } = dashboardPeriod(now)
   const clinical = role === 'OPHTHALMOLOGIST'
-  const date = (value: string) => value.split('-').reverse().join('/')
   const agenda = `/agendamentos?from=${today}&to=${today}`
   const calendar = `/calendario?date=${today}`
   return (
@@ -120,11 +119,6 @@ function OperationalDashboard({
           {clinical
             ? 'Sua agenda e seus atendimentos.'
             : 'Agenda operacional da clínica.'}
-        </p>
-        <p className="text-sm text-text-secondary">
-          Hoje: {date(today)} · Fuso operacional UTC−03:00. Período consultado:{' '}
-          {date(first)} a {date(last)}. Pendências: {date(first)} a hoje. Próximos
-          agendamentos: de agora até {date(last)}.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link

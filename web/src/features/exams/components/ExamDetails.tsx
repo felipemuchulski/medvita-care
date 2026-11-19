@@ -113,11 +113,11 @@ export function ExamDetails({
             </dd>
           </div>
           <div>
-            <dt className="text-text-secondary">Solicitação (UTC−03:00)</dt>
+            <dt className="text-text-secondary">Solicitação</dt>
             <dd>{examDate(exam.requestedAt)}</dd>
           </div>
           <div>
-            <dt className="text-text-secondary">Realização (UTC−03:00)</dt>
+            <dt className="text-text-secondary">Realização</dt>
             <dd>{examDate(exam.performedAt)}</dd>
           </div>
           {exam.completedAt && (

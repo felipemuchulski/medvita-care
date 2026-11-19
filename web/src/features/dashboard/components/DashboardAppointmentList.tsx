@@ -50,7 +50,7 @@ export function DashboardAppointmentList({
               className="min-w-0 space-y-3 rounded-lg border border-border p-4 [overflow-wrap:anywhere]"
             >
               <h3 className="font-semibold">{a.patient.name}</h3>
-              <p className="text-sm">{formatAppointment(a.scheduledAt)} · UTC−03:00</p>
+              <p className="text-sm">{formatAppointment(a.scheduledAt)}</p>
               <p className="text-sm text-text-secondary">
                 Profissional: {a.professional.name}
               </p>

@@ -79,7 +79,7 @@ function Detail({ clinic, user, id }: { clinic: string; user: string; id: string
               {record.professional.user.name}
             </span>
           </p>
-          <p>Início: {formatAppointment(record.startedAt)} · UTC−03:00</p>
+          <p>Início: {formatAppointment(record.startedAt)}</p>
           {record.finishedAt && <p>Término: {formatAppointment(record.finishedAt)}</p>}
         </div>
       </header>

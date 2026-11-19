@@ -7,7 +7,7 @@ Atualização: 08/11/2026. Substitui a tela de indisponibilidade entregue após 
 - `/exames`: listagem real com cards em smartphones/tablets e tabela a partir de xl; busca por paciente/tipo, tipo, status e período de solicitação. Filtros de paciente/atendimento podem vir dos links de Prontuários. Paginação aparece somente quando há mais de uma página.
 - `/exames/novo`: paciente pesquisável/paginado, atendimento opcional do mesmo paciente e profissional, tipo do catálogo real, lateralidade OD/OS/AO e observações.
 - `/exames/:examId`: identificação, paciente, solicitante, datas, lateralidade, status, vínculo com atendimento, observações e resultado. Edição da solicitação enquanto REQUESTED, resultado em estados abertos, conclusão e cancelamento com confirmação.
-- Resultado descritivo com data/horário UTC−03:00 explícitos, seguindo a convenção existente. A interface não interpreta resultados nem gera diagnóstico.
+- Resultado descritivo com data e horário de realização, seguindo a convenção existente. A interface não interpreta resultados nem gera diagnóstico.
 - Histórico do paciente e atendimento têm links para exames filtrados; os detalhes permitem retornar ao histórico/atendimento. O acesso permanece limitado aos exames solicitados pelo usuário.
 - Sem upload, laudos estruturados de equipamentos, CRUD de catálogo ou exclusão.
 

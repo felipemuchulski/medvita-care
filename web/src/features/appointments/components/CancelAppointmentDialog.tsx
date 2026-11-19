@@ -52,8 +52,8 @@ export function CancelAppointmentDialog({
           Cancelar agendamento?
         </h2>
         <p className="break-words">
-          {appointment.patient.name} · {formatAppointment(appointment.scheduledAt)}{' '}
-          (UTC−03:00), com {appointment.professional.user.name}.
+          {appointment.patient.name} · {formatAppointment(appointment.scheduledAt)}, com{' '}
+          {appointment.professional.user.name}.
         </p>
         <label className="form-field">
           Motivo obrigatório

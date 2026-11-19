@@ -87,7 +87,7 @@ export function ExamResultForm({
       >
         <ExamField
           id="exam-performed"
-          label="Data e horário de realização (UTC−03:00)"
+          label="Data e horário de realização"
           error={errors.performedAt?.message}
         >
           <input

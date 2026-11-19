@@ -22,7 +22,7 @@ export class CreateAppointmentDto {
 
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}T.+(?:Z|[+-]\d{2}:\d{2})$/, {
-    message: "scheduledAt deve ser ISO 8601 e informar o fuso horário",
+    message: "Informe uma data e horário válidos para o agendamento.",
   })
   scheduledAt: string;
 
