@@ -2,6 +2,14 @@
 # Keep any existing API/proxy rules before this SPA fallback.
 RewriteEngine On
 
+# Revalidate the entry document after each deployment. Hashed assets keep
+# their normal caching; an old document must not reference removed chunks.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header always set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
 # Never turn API requests into the frontend HTML document.
 RewriteRule ^api(?:/|$) - [L,NC]
 

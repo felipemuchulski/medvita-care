@@ -16,8 +16,11 @@ import { AuthProvider } from './contexts/AuthProvider'
 import { ClinicProvider } from './contexts/ClinicProvider'
 import { queryClient } from './lib/query-client'
 import { AuthorizationBoundary } from './contexts/AuthorizationBoundary'
+import RouteErrorPage from './app/RouteErrorPage'
 
-const router = createBrowserRouter([{ path: '*', element: <App /> }])
+const router = createBrowserRouter([
+  { path: '*', element: <App />, errorElement: <RouteErrorPage /> },
+])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -45,6 +45,10 @@ export function configureApplication(app: NestExpressApplication): void {
     index: false,
     redirect: false,
     dotfiles: "ignore",
+    setHeaders: (response, file) => {
+      if (extname(file) === ".html")
+        response.setHeader("Cache-Control", "no-cache");
+    },
   });
   app.use((request: Request, response: Response, next: NextFunction) => {
     const path = request.path;

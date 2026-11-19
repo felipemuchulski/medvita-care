@@ -1,5 +1,15 @@
 # Roteamento SPA na Hostinger
 
+## Falha ao baixar uma página após publicação
+
+`Failed to fetch dynamically imported module` indica que o navegador não conseguiu baixar um módulo de página. Uma aba antiga pode ainda pedir um arquivo com hash de um build anterior; publicação incompleta, indisponibilidade de rede e resposta com tipo incorreto também precisam ser verificados na aba Network.
+
+O HTML agora recebe `Cache-Control: no-cache` no `.htaccess` estático e no servidor unificado, inclusive em `/index.html`. A interface oferece um botão para recarregar a mesma URL quando ocorre erro de carregamento. O recarregamento depende do usuário, evitando ciclos automáticos em falhas persistentes.
+
+Publique `index.html` e todos os arquivos de `assets/` do mesmo build, preferencialmente com troca atômica de diretório. Preserve assets da versão anterior durante a transição para atender abas já abertas. Se houver CDN, invalide o HTML antigo. Não renomeie chunks manualmente.
+
+Após publicar, confira `Cache-Control` no documento e que a URL do módulo solicitada pelo navegador responde 200 com JavaScript. Se recarregar não resolver, verifique o status e o Content-Type do arquivo que falhou. A tela de recuperação não substitui um arquivo ausente no servidor.
+
 Análise e implementação em 15/11/2026. Correção preparada e testada localmente, sem deploy, alteração no NestJS ou acesso ao Supabase.
 
 ## Diagnóstico
